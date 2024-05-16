@@ -11,6 +11,7 @@ This document is a living document and will be updated as the team grows and the
 - [Source Control](#source-control)
   - [Branching](#branching)
   - [Commits](#commits)
+- [Project Documentation](#project-documentation)
 - Deployment (TBD)
 - QA & Testing (TBD)
 - [Modifications](#modifications)
@@ -111,6 +112,10 @@ feat: new API endpoint to get user data, profile picture and email
 
 Includes a database migration with a new model in the backend to handle the user data and a new endpoint to get the user data, profile picture and email.
 ```
+
+## Project Documentation
+
+To maintain a standard structure while developing new projects, it is recommended to use the [Technical Documentation](./TechnicalDocumentation.md) file as a template for your project's README.md file.
 
 ## Modifications
 
