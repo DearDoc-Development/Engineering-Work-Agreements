@@ -15,6 +15,7 @@ One sentence or two explaining what the project does or what it is for.
   - [Architecture](#architecture)
   - [Built With](#built-with)
   - [API Endpoints](#api-endpoints)
+  - [Logging](#logging)
 - [Contributing](#contributing)
   - [Versioning](#versioning)
   - [Authors](#authors)
@@ -82,6 +83,13 @@ Please also include a sample `request` and `response` if possible.
   "ok": true
 }
 ```
+
+### **Logging**
+
+Explain how logging is handled in the project.
+
+The projects should use a structured logging system, such as [pino](!https://github.com/pinojs/pino), to log events in a structured format. This allows for easier querying and analysis of logs. Describe the transport mechanism used for logs (e.g., console, file, third-party service) and the log levels used in the project (e.g., debug, info, error). Also, include instructions on how to use the logger.
+If logs are sent to a centralized logging system, provide information on how to access them.
 
 ### **Built With**
 
