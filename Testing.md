@@ -42,6 +42,10 @@ Jest has different methods that accomplish this but we can focus on two main one
 Running this between each test case is a good way to clean up mocks and it's data:
 
 ```
+const getObjectSpy = jest.spyOn(objectClient, "getById");
+
+expect(getObjectSpy).toHaveBeenCalled();
+
 afterEach(() => {
   jest.resetAllMocks()
 })
@@ -54,6 +58,15 @@ afterEach(() => {
 Running this after a test suite has concluded is a good way to restore the original functionality:
 
 ```
+const axiosPostSpy = jest.spyOn(axios, "post");
+
+axiosPostSpy.mockResolvedValueOnce({
+  status: 200,
+  data: {
+  ...
+  },
+});
+
 afterAll(() => {
   jest.restoreAllMocks()
 })
