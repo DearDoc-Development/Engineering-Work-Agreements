@@ -7,10 +7,53 @@ This document is a living document and will be updated as the team grows and the
 ## Table of Contents
 
 - [Testing](#testing)
+- [Naming](#naming)
+- [Test file names and structure](#Test-file-names-and-structure)
 - [Mocking](#mocking)
 - [External API Calls](#external-api-calls)
 - [Clean up](#clean-up)
 - [External Resources](#external-resources)
+
+## Naming
+
+### Test file names and structure
+
+Test file names should ideally identify what type of test it is:
+
+ - Unit tests: *.unit.test.ts
+ - Integration tests: *.integration.test.ts
+
+Being able to separate and quickly identify the test type allows us to specify different configuration settings
+if necessary. For example, we can configure separate test coverage on unit tests and integration tests.
+
+```
+src/jest.config.js
+src/jest.integration.config.js
+```
+
+Each configuration may include the type of tests it should match against:
+
+```
+testMatch: ["**/integration.test.ts"]
+````
+
+The location of these test files is quite important as well. Having a unit test file along the file its testing against
+is helpful for quickly finding it instead of searching for it somewhere else where multiple tests could be located.
+For example:
+
+```
+src/user.ts
+src/user.unit.test.ts
+```
+
+For integration tests, these usually test multiple services or functions so it makes sense to group them together
+inside the nearest __tests__ directory.
+
+```
+src/user.service.ts
+src/db.service.ts
+src/__tests__/user.service.integration.test.ts
+```
 
 ## Mocking
 
@@ -77,3 +120,4 @@ afterAll(() => {
 - [An Expert’s Guide to Understanding the Testing Pyramid](https://thectoclub.com/topics/testing-pyramid/)
 - [On the Diverse And Fantastical Shapes of Testing](https://martinfowler.com/articles/2021-test-shapes.html)
 - [Jest Mocking Best Practices](https://devblogs.microsoft.com/ise/jest-mocking-best-practices/)
+- [Telling a Story with Test Code](https://markus.oberlehner.net/blog/telling-a-story-with-test-code)
