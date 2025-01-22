@@ -97,6 +97,8 @@ List major frameworks, libraries, or tools that were used to create the project:
 
 - Hyperlink the tool or framework to its official page to make it easier for new users to find the resources they need quickly.
 
+If the project is a Node.js based project, a .nvmrc file with the version of node used in the project should be attached to the root folder of the project. Documentation on how to use [.nvmrc](https://github.com/nvm-sh/nvm?tab=readme-ov-file#nvmrc)
+
 ## **Contributing**
 
 Provide guidelines on how prospective contributors can participate in the project:
