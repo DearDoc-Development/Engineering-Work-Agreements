@@ -19,6 +19,7 @@ The types of functional testing include:
 Unit tests represent the most granular level of testing, operating directly on the application's source code. They evaluate the functionality of discrete methods and functions within your classes, modules, or components. These tests are typically inexpensive to implement in automated testing pipelines and execute rapidly when run on continuous integration platforms, making them ideal for frequent validation during development cycles.
 
 Popular tools for unit testing include:
+- **Vitest**: Modern testing framework, simple configuration and startup. 
 - **Jest**: A JavaScript testing framework with a focus on simplicity.
 - **Mocha**: A flexible JavaScript test framework for Node.js and browsers.
 - **Chai**: An assertion library for Node.js and browsers, often used with Mocha.
