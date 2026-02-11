@@ -6,15 +6,19 @@ This document is a living document and will be updated as the team grows and the
 
 ## Table of Contents
 
-- [Project Management](#project-management)
-- [People](#people)
-- [Source Control](#source-control)
-  - [Branching](#branching)
-  - [Commits](#commits)
-- [Project Documentation](#project-documentation)
-- Deployment (TBD)
-- QA & Testing (TBD)
-- [Modifications](#modifications)
+- [Engineering Work Agreements](#engineering-work-agreements)
+  - [Table of Contents](#table-of-contents)
+  - [Project Management](#project-management)
+    - [Tools](#tools)
+  - [People](#people)
+  - [Source Control](#source-control)
+    - [Branching](#branching)
+    - [Commits](#commits)
+    - [PR and Deploy Mandatory Steps](#pr-and-deploy-mandatory-steps)
+      - [Versioning Definitions](#versioning-definitions)
+      - [Mandatory steps](#mandatory-steps)
+  - [Project Documentation](#project-documentation)
+  - [Modifications](#modifications)
 
 ## Project Management
 
@@ -76,8 +80,11 @@ We will use [Github Flow](https://githubflow.github.io/) as our branching strate
 - To work on something new, create a descriptively named branch off of `main` (ie: `new-oauth2-scopes`).
 - Commit to that branch locally and regularly push your work to the same named branch on the server.
 - When you need feedback or help, or you think the branch is ready for merging, open a pull request.
+- `Staging Environment`: If a Staging environment exists, it must be used for verification before merging to `main` (Production) following the instructions bellow.
+- `No Staging Environment`: If no Staging environment exists, all mandatory checks and reviews must be performed before merging directly to `main`.
 - After someone else has reviewed and signed off on the feature, you can merge it into `main`.
-- Once it is merged and pushed to `main`, you can and should deploy immediately.
+- Once it is merged and pushed to `main`, you can and should deploy immediately. 
+- After checking the `main` deploy delete the `feature/fix branch ot keep the repo clean
 
 ### Commits
 
@@ -112,6 +119,33 @@ feat: new API endpoint to get user data, profile picture and email
 
 Includes a database migration with a new model in the backend to handle the user data and a new endpoint to get the user data, profile picture and email.
 ```
+
+### PR and Deploy Mandatory Steps
+
+#### Versioning Definitions
+- `Fix`: Treated as a minor version.
+- `Feature`: Treated as a major version.
+
+#### Mandatory steps
+1. **PR Small / Fix (Minor Version)**
+     + Step 1: Localhost - Develop and test changes locally.
+     + Step 2: PR to Staging
+       + **Required Reviews:** 1 Peer Reviewer + Copilot Review.
+       + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+     + Step 3: PR to Production (main)
+       + **Required Reviews:** Copilot Review.
+       + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+
+2. **Feature (Major Version)**
+      + Step 1: Localhost - Develop and test changes locally.
+      + Step 2: PR to Staging
+        + **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
+        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+      + Step 3: PR to Production (main)
+        + **Tagging: Tag the Feature.**
+        + **Required Reviews:** Copilot Review.
+        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+
 
 ## Project Documentation
 
