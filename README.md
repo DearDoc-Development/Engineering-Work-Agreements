@@ -15,6 +15,7 @@ This document is a living document and will be updated as the team grows and the
     - [Branching](#branching)
     - [Commits](#commits)
     - [PR and Deploy Mandatory Steps](#pr-and-deploy-mandatory-steps)
+      - [Team commitments](#team-commitments)
       - [Versioning Definitions](#versioning-definitions)
       - [Mandatory steps](#mandatory-steps)
   - [Project Documentation](#project-documentation)
@@ -100,6 +101,7 @@ The structure of a commit should have this structure:
 <type>[optional scope]: <description>
 
 [optional body]
+[optional Monday Ticket if related with any task or support issue - Format: "Item Name #123456" or just "#123456"]
 
 [optional footer(s)]
 ```
@@ -122,12 +124,16 @@ Includes a database migration with a new model in the backend to handle the user
 
 ### PR and Deploy Mandatory Steps
 
+#### Team commitments
+- `24h review`: if one is mentioned as a reviwer then in less than 24 hours he must respond or designate another person for the job.
+- `Monday link`: If the PR is related with a ticket in Monday Dev platform the number of the item must be writen in your GitHub PR title or description (check commit example).
+
 #### Versioning Definitions
-- `Fix`: Treated as a minor version.
+- `Fix/small PR`: Treated as a minor version.
 - `Feature`: Treated as a major version.
 
 #### Mandatory steps
-1. **PR Small / Fix (Minor Version)**
+1. **Fix** - `fix/docs/chore`
      + Step 1: Localhost - Develop and test changes locally.
      + Step 2: PR to Staging
        + **Required Reviews:** 1 Peer Reviewer + Copilot Review.
@@ -136,13 +142,22 @@ Includes a database migration with a new model in the backend to handle the user
        + **Required Reviews:** Copilot Review.
        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
 
-2. **Feature (Major Version)**
+2. **Small PRs group (Minor Version)** - `feat/s` (small)
       + Step 1: Localhost - Develop and test changes locally.
       + Step 2: PR to Staging
         + **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
         + **Required Checks:** CI/CD (GitHub Action checks) must pass.
       + Step 3: PR to Production (main)
-        + **Tagging: Tag the Feature.**
+        + **Required Reviews:** 1 Peer Reviewer + Copilot Review.
+        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+
+3. **Feature (Major Version)** `feat/BREAKING CHANGE`
+      + Step 1: Localhost - Develop and test changes locally.
+      + Step 2: PR to Staging
+        + **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
+        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+      + Step 3: PR to Production (main)
+        + **Tagging: Tag the Feature code.**
         + **Required Reviews:** Copilot Review.
         + **Required Checks:** CI/CD (GitHub Action checks) must pass.
 
