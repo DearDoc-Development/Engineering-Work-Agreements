@@ -80,12 +80,14 @@ We will use [Github Flow](https://githubflow.github.io/) as our branching strate
 - Anything in the `main` branch is always deployable.
 - To work on something new, create a descriptively named branch off of `main` (ie: `new-oauth2-scopes`).
 - Commit to that branch locally and regularly push your work to the same named branch on the server.
-- When you need feedback or help, or you think the branch is ready for merging, open a pull request.
+- When you need feedback or help, or you think the branch is ready for merging, open a pull request to staging if available.
 - `Staging Environment`: If a Staging environment exists, it must be used for verification before merging to `main` (Production) following the instructions bellow.
-- `No Staging Environment`: If no Staging environment exists, all mandatory checks and reviews must be performed before merging directly to `main`.
-- After someone else has reviewed and signed off on the feature, you can merge it into `main`.
-- Once it is merged and pushed to `main`, you can and should deploy immediately. 
-- After checking the `main` deploy delete the `feature/fix branch ot keep the repo clean
+- `No Staging Environment`: If no Staging environment exists, all mandatory checks and reviews must be performed before merging directly to main.
+- Mandatory Protection: The `main` branch (and/or vanta_production) is a protected branch.
+- No Admin Bypass: Branch protection settings apply to everyone, including administrators. No one can push directly to main or merge without meeting approval requirements.
+- Peer Review: A minimum of one human peer review is required for all merges to production branches.
+- Once it is merged and pushed to `main`, you can and should deploy immediately.
+- After checking the main deploy delete the feature/fix branch to keep the repo clean
 
 ### Commits
 
@@ -127,13 +129,14 @@ Includes a database migration with a new model in the backend to handle the user
 #### Team commitments
 - `24h review`: if one is mentioned as a reviwer then in less than 24 hours he must respond or designate another person for the job.
 - `Monday link`: If the PR is related with a ticket in Monday Dev platform the number of the item must be writen in your GitHub PR title or description (check commit example).
+- `SOC2 Compliance`: Under no circumstances should branch protections be disabled to speed up a deployment.
 
 #### Versioning Definitions
 - `Fix/small PR`: Treated as a minor version.
 - `Feature`: Treated as a major version.
 
 #### Mandatory steps
-1. **Fix** - `fix/docs/chore`
+1. **Fix** - `fix/docs/chore` - Excepting Emergency Hotfix (below)
      + Step 1: Localhost - Develop and test changes locally.
      + Step 2: PR to Staging
        + **Required Reviews:** 1 Peer Reviewer + Copilot Review.
@@ -161,6 +164,19 @@ Includes a database migration with a new model in the backend to handle the user
         + **Required Reviews:** Copilot Review.
         + **Required Checks:** CI/CD (GitHub Action checks) must pass.
 
+  Note: "Copilot Review" is an internal aid; SOC2 compliance specifically requires Human Peer Review for the "Application changes reviewed" test.
+
+4. **Emergency Hotfix Protocol** ("Break Glass")
+Since Admin Bypass is disabled to meet SOC2 requirements, the following protocol must be followed for critical production outages (P0) where the standard flow is too slow:
+  a. Accelerated Review: During an outage, the developer must alert the #engineer Slack channel.
+  b. Solution 1: Rollback the problematic changes.
+  c. Solution 2 (If rollback is not feasible):
+      * Commit Fix: Push the fix to a new branch and immediately open a PR.
+      * On-Call Approval: Alert the #engineer Slack channel. Any available engineer (regardless of seniority) can perform a rapid review to provide the mandatory 1-approval.
+      * Audit Trail: If a branch protection rule must be temporarily modified by an Org Admin to resolve a catastrophic failure (extreme cases only):
+          * The change must be documented in a Monday.com ticket.
+              * The rule must be re-enabled immediately after the hotfix.
+              * A post-mortem must be conducted to explain why the bypass was necessary for the compliance audit log.
 
 ## Project Documentation
 
