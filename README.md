@@ -9,6 +9,8 @@ This document is a living document and will be updated as the team grows and the
 - [Engineering Work Agreements](#engineering-work-agreements)
   - [Table of Contents](#table-of-contents)
   - [Project Management](#project-management)
+    - [Agile](#agile)
+    - [Cronos](#cronos)
     - [Tools](#tools)
   - [People](#people)
   - [Source Control](#source-control)
@@ -23,7 +25,11 @@ This document is a living document and will be updated as the team grows and the
 
 ## Project Management
 
-This section outlines key practices for effective project management at DearDoc. We predominantly adopt [Agile methodologies](https://agilemanifesto.org/) to manage our work, adapting our approach based on team preferences and project demands.
+This section outlines key practices for effective project management at DearDoc.
+
+### Agile
+
+We predominantly adopt [Agile methodologies](https://agilemanifesto.org/) to manage our work, adapting our approach based on team preferences and project demands.
 
 At DearDoc, we primarily utilize two Agile methodologies: [Scrum](https://www.scrum.org/) and [Kanban](https://www.atlassian.com/agile/kanban). The choice between Scrum and Kanban depends on the specific requirements of the project as well as team dynamics.
 
@@ -33,6 +39,28 @@ At DearDoc, we primarily utilize two Agile methodologies: [Scrum](https://www.sc
 - **Kanban:** Focuses on continuous workflow with no set time frames for iterations. It emphasizes ongoing delivery without predefined roles or formal ceremonies.
 
 So, while Scrum is more structured and prescriptive, Kanban is more flexible and adaptive, useful for a continuous task such as maintenance or projects developed by individual teams. The choice between the two depends on the project requirements and team dynamics.
+
+### Cronos
+
+For feature development we use one-week **Cronos cycles** — a structured methodology for human-validated, AI-augmented engineering. The full framework documentation lives in [`cronos/`](./cronos/).
+
+**Quick reference:**
+
+| Day | Phase | Focus |
+|-----|-------|-------|
+| Monday | Initialization | Plan review, scaffolding, architecture decisions |
+| Tue–Wed | Vibe Coding | Iterative AI-assisted implementation |
+| Thursday | Validation | Automated testing, security scans, QA |
+| Friday | Finalization | Documentation, polish, peer review |
+
+**Key rules:**
+
+- Every cycle includes a **mandatory half-day peer review** by someone other than the author.
+- For any non-trivial change (new feature, schema change, API surface, cross-repo integration): **present the plan, wait for explicit approval, then implement**.
+- Bug fixes and small refactors do not need the approval gate unless they cross repo boundaries.
+- Cycles can span multiple repos — coordinate via a shared Epic and Monday.com item.
+
+See [`cronos/README.md`](./cronos/README.md) for the full methodology, roles, and requirements.
 
 ### Tools
 
@@ -127,56 +155,59 @@ Includes a database migration with a new model in the backend to handle the user
 ### PR and Deploy Mandatory Steps
 
 #### Team commitments
+
 - `24h review`: if one is mentioned as a reviwer then in less than 24 hours he must respond or designate another person for the job.
 - `Monday link`: If the PR is related with a ticket in Monday Dev platform the number of the item must be writen in your GitHub PR title or description (check commit example).
 - `SOC2 Compliance`: Under no circumstances should branch protections be disabled to speed up a deployment.
 
 #### Versioning Definitions
+
 - `Fix/small PR`: Treated as a minor version.
 - `Feature`: Treated as a major version.
 
 #### Mandatory steps
+
 1. **Fix** - `fix/docs/chore` - Excepting Emergency Hotfix (below)
-     + Step 1: Localhost - Develop and test changes locally.
-     + Step 2: PR to Staging
-       + **Required Reviews:** 1 Peer Reviewer + Copilot Review.
-       + **Required Checks:** CI/CD (GitHub Action checks) must pass.
-     + Step 3: PR to Production (main)
-       + **Required Reviews:** Copilot Review.
-       + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+     - Step 1: Localhost - Develop and test changes locally.
+     - Step 2: PR to Staging
+       - **Required Reviews:** 1 Peer Reviewer + Copilot Review.
+       - **Required Checks:** CI/CD (GitHub Action checks) must pass.
+     - Step 3: PR to Production (main)
+       - **Required Reviews:** Copilot Review.
+       - **Required Checks:** CI/CD (GitHub Action checks) must pass.
 
 2. **Small PRs group (Minor Version)** - `feat/s` (small)
-      + Step 1: Localhost - Develop and test changes locally.
-      + Step 2: PR to Staging
-        + **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
-        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
-      + Step 3: PR to Production (main)
-        + **Required Reviews:** 1 Peer Reviewer + Copilot Review.
-        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+      - Step 1: Localhost - Develop and test changes locally.
+      - Step 2: PR to Staging
+        - **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
+        - **Required Checks:** CI/CD (GitHub Action checks) must pass.
+      - Step 3: PR to Production (main)
+        - **Required Reviews:** 1 Peer Reviewer + Copilot Review.
+        - **Required Checks:** CI/CD (GitHub Action checks) must pass.
 
 3. **Feature (Major Version)** `feat/BREAKING CHANGE`
-      + Step 1: Localhost - Develop and test changes locally.
-      + Step 2: PR to Staging
-        + **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
-        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
-      + Step 3: PR to Production (main)
-        + **Tagging: Tag the Feature code.**
-        + **Required Reviews:** Copilot Review.
-        + **Required Checks:** CI/CD (GitHub Action checks) must pass.
+      - Step 1: Localhost - Develop and test changes locally.
+      - Step 2: PR to Staging
+        - **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
+        - **Required Checks:** CI/CD (GitHub Action checks) must pass.
+      - Step 3: PR to Production (main)
+        - **Tagging: Tag the Feature code.**
+        - **Required Reviews:** Copilot Review.
+        - **Required Checks:** CI/CD (GitHub Action checks) must pass.
 
   Note: "Copilot Review" is an internal aid; SOC2 compliance specifically requires Human Peer Review for the "Application changes reviewed" test.
 
-4. **Emergency Hotfix Protocol** ("Break Glass")
+1. **Emergency Hotfix Protocol** ("Break Glass")
 Since Admin Bypass is disabled to meet SOC2 requirements, the following protocol must be followed for critical production outages (P0) where the standard flow is too slow:
   a. Accelerated Review: During an outage, the developer must alert the #engineer Slack channel.
   b. Solution 1: Rollback the problematic changes.
   c. Solution 2 (If rollback is not feasible):
-      * Commit Fix: Push the fix to a new branch and immediately open a PR.
-      * On-Call Approval: Alert the #engineer Slack channel. Any available engineer (regardless of seniority) can perform a rapid review to provide the mandatory 1-approval.
-      * Audit Trail: If a branch protection rule must be temporarily modified by an Org Admin to resolve a catastrophic failure (extreme cases only):
-          * The change must be documented in a Monday.com ticket.
-              * The rule must be re-enabled immediately after the hotfix.
-              * A post-mortem must be conducted to explain why the bypass was necessary for the compliance audit log.
+      - Commit Fix: Push the fix to a new branch and immediately open a PR.
+      - On-Call Approval: Alert the #engineer Slack channel. Any available engineer (regardless of seniority) can perform a rapid review to provide the mandatory 1-approval.
+      - Audit Trail: If a branch protection rule must be temporarily modified by an Org Admin to resolve a catastrophic failure (extreme cases only):
+          - The change must be documented in a Monday.com ticket.
+              - The rule must be re-enabled immediately after the hotfix.
+              - A post-mortem must be conducted to explain why the bypass was necessary for the compliance audit log.
 
 ## Project Documentation
 
