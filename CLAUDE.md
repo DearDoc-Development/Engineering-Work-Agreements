@@ -50,6 +50,23 @@ New projects follow [TechnicalDocumentation.md](./TechnicalDocumentation.md) as 
 - For PCI/PHI data: zero-persistence. Raw card data, CVVs, and expiry dates must never be stored in databases, logs, caches, or backups. Sensitive fields must be sanitized from logs.
 - Follow the peer-review security checklist in `cronos.md` on every PR.
 
+## Cloud & Infrastructure
+
+We are bound by HIPAA and SOC 2. Full agreements in [CloudBestPractices.md](./CloudBestPractices.md). The rules that most often affect what Claude is asked to do:
+
+- **Two tiers of platform.** AWS and GCP only for production and anything holding real patient (PHI) or customer data. Other platforms (Vercel, Railway, Supabase, Cloudflare) are prototypes only — never with real data, never with production credentials, and never calling production APIs.
+- **Terraform, not the console.** Propose production infrastructure as code. Never suggest a console change to production outside an emergency.
+- **Compliant by construction.** When adding a resource, the same change must include: encryption at rest and in transit, a dedicated least-privilege role, private-by-default networking, a `VantaOwner` tag, alarms wired to an existing notification channel, and explicit 365-day log retention. Use the per-resource baselines in CloudBestPractices.md — don't invent thresholds.
+- **Never deploy without telemetry.** Do not treat a resource as done if it has no alarms.
+- **Ticket first.** Infrastructure and access changes require an approved Monday.com item. Surface this rather than proceeding silently.
+
+### Working implications for Claude
+
+- Treat any new production resource, IAM change, or network-perimeter change as non-trivial: present the plan and wait for approval (Mission Control gate).
+- Never write PHI, PII, card data, or secrets into logs, prompts, fixtures, or test data — synthetic data only.
+- Never suggest disabling encryption, opening `0.0.0.0/0`, granting `allUsers`/`allAuthenticatedUsers`, attaching wildcard IAM policies, or using Owner/Editor roles on service accounts.
+- If a compliance rule blocks the task, say so and propose the ticket-and-exception path instead of a workaround.
+
 ## Modifications
 
 These agreements are a living document. Open a PR in [Engineering-Work-Agreements](https://github.com/DearDoc-Development/Engineering-Work-Agreements) to propose changes.
