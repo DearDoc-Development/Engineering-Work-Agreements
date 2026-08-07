@@ -20,6 +20,7 @@ This document is a living document and will be updated as the team grows and the
       - [Team commitments](#team-commitments)
       - [Versioning Definitions](#versioning-definitions)
       - [Mandatory steps](#mandatory-steps)
+  - [Cloud and Infrastructure](#cloud-and-infrastructure)
   - [Project Documentation](#project-documentation)
   - [Modifications](#modifications)
 
@@ -208,6 +209,20 @@ Since Admin Bypass is disabled to meet SOC2 requirements, the following protocol
           - The change must be documented in a Monday.com ticket.
               - The rule must be re-enabled immediately after the hotfix.
               - A post-mortem must be conducted to explain why the bypass was necessary for the compliance audit log.
+
+## Cloud and Infrastructure
+
+DearDoc serves healthcare practices and is bound by **HIPAA** and **SOC 2**, so cloud resources have their own set of agreements. They apply to anyone creating or changing infrastructure, not only to engineers. The full document is [Cloud Best Practices](./CloudBestPractices.md).
+
+**Quick reference:**
+
+- **Two tiers.** AWS and GCP only for production and anything holding real patient or customer data — those are the platforms covered by our BAAs, intrusion detection, centralized logging, and Vanta monitoring. Other platforms (Vercel, Railway, Supabase, etc.) are for prototypes and internal tools, with **no real data and no production credentials, ever**.
+- **Ticket first.** Every resource change is approved in Monday.com before it happens. This is our SOC 2 change-management control.
+- **Terraform, not the console.** Production resources are created as code. Console changes are for emergencies, documented after the fact and codified immediately.
+- **Compliant by construction.** Encryption, least-privilege IAM, private-by-default networking, an owner tag, alarms, and explicit log retention ship in the *same change* as the resource — not as a follow-up cleanup.
+- **Never deploy without telemetry.** A resource with no alarms is not production-ready and will fail Vanta. Alarms route into the existing notification channels; don't create new ones without a ticket.
+
+If a compliance rule blocks your work, the answer is a ticket and a documented exception — never a silent workaround.
 
 ## Project Documentation
 
