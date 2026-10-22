@@ -21,6 +21,7 @@ This document is a living document and will be updated as the team grows and the
       - [Versioning Definitions](#versioning-definitions)
       - [Mandatory steps](#mandatory-steps)
   - [Cloud and Infrastructure](#cloud-and-infrastructure)
+  - [Claude Code Setup](#claude-code-setup)
   - [Project Documentation](#project-documentation)
   - [Modifications](#modifications)
 
@@ -223,6 +224,13 @@ DearDoc serves healthcare practices and is bound by **HIPAA** and **SOC 2**, so 
 - **Never deploy without telemetry.** A resource with no alarms is not production-ready and will fail Vanta. Alarms route into the existing notification channels; don't create new ones without a ticket.
 
 If a compliance rule blocks your work, the answer is a ticket and a documented exception — never a silent workaround.
+
+## Claude Code Setup
+
+The Claude Code setup lives in the private [ai-toolkit](https://github.com/DearDoc-Development/ai-toolkit) repository. You need access to the DearDoc-Development organization to open it.
+
+- [Org-wide CLAUDE.md](https://github.com/DearDoc-Development/ai-toolkit/blob/main/agents/org-claude.md): the instructions every DearDoc repository shares. [How to import it](https://github.com/DearDoc-Development/ai-toolkit/blob/main/skills/INTEGRATION.md#importing-the-org-wide-claudemd).
+- [Claude Code guardrails](https://github.com/DearDoc-Development/ai-toolkit/blob/main/knowledge/claude-code-guardrails.md): how every engineer sets up Claude Code on their machine.
 
 ## Project Documentation
 
