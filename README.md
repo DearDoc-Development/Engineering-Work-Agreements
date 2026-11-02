@@ -115,7 +115,7 @@ We will use [Github Flow](https://githubflow.github.io/) as our branching strate
 - `No Staging Environment`: If no Staging environment exists, all mandatory checks and reviews must be performed before merging directly to main.
 - Mandatory Protection: The `main` branch (and/or vanta_production) is a protected branch.
 - No Admin Bypass: Branch protection settings apply to everyone, including administrators. No one can push directly to main or merge without meeting approval requirements.
-- Review: Every merge needs an approving review from someone other than the author. On `staging`, that review can come from Copilot code review in repositories where Copilot approvals are enabled (see the note under Mandatory steps). Production branches always need at least one human peer approval: Copilot's approval never merges to production on its own.
+- Review: Every merge needs an approving review from someone other than the author. In repositories where Copilot approvals are enabled, that review can come from Copilot code review on `staging` and `main`, except for High-Risk changes, which need a human peer (see the note under Mandatory steps). Other production branches, such as `vanta_production`, need a human peer. A person always merges.
 - Once it is merged and pushed to `main`, you can and should deploy immediately.
 - After checking the main deploy delete the feature/fix branch to keep the repo clean
 
@@ -197,7 +197,7 @@ Includes a database migration with a new model in the backend to handle the user
         - **Required Reviews:** 1 Peer Reviewer + Copilot Review.
         - **Required Checks:** CI/CD (GitHub Action checks) must pass.
 
-  Note: "Copilot Review" means Copilot code review runs automatically on the pull request. In repositories where Copilot approvals are enabled, a Copilot approval on a `staging` pull request counts as the Peer Reviewer under our SOC 2 change-management control. Changes to CI/CD, deployment config and agent instruction files still need a human code owner. On `main`, Copilot reviews and a human peer approves. Repositories with Copilot approvals enabled: `deardoc-dashboard-frontend` (trial).
+  Note: "Copilot Review" means Copilot code review runs automatically on the pull request. In repositories where Copilot approvals are enabled, a Copilot approval on a `staging` or `main` pull request fills the single Peer Reviewer slot under our SOC 2 change-management control, so no second approval is needed. Copilot does not approve High-Risk changes, so a human peer must approve changes involving: authentication, authorization, security rules (`firestore.rules`, `storage.rules`), secrets handling, patient data routing, payment or billing logic, database migrations, CI/CD workflows, deploy config (`firebase.json`), review and agent instructions (`.github/`, `CLAUDE.md`, `AGENTS.md`, `REVIEW.md`, `*.instructions.md`), a new third-party service, SDK, AI tool or runtime package (not version bumps or dev-only packages), and changes to how the AI chat interacts with patients. Copilot also does not approve while a High-Severity finding is open. Repositories with Copilot approvals enabled (trial): `deardoc-dashboard-frontend`, `deardoc-dashboard-backend` and `deardoc-dashboard-web-integration`.
 
 1. **Emergency Hotfix Protocol** ("Break Glass")
 Since Admin Bypass is disabled to meet SOC2 requirements, the following protocol must be followed for critical production outages (P0) where the standard flow is too slow:
