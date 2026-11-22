@@ -4,6 +4,8 @@ The purpose of this repository is to provide a set of guidelines and best practi
 
 This document is a living document and will be updated as the team grows and the company evolves.
 
+**The [release protocol](#release-protocol) is the rule for tickets, branching, review, testing, release and rollback. It replaces any older rule in this repository.**
+
 ## Table of Contents
 
 - [Engineering Work Agreements](#engineering-work-agreements)
@@ -13,13 +15,20 @@ This document is a living document and will be updated as the team grows and the
     - [Cronos](#cronos)
     - [Tools](#tools)
   - [People](#people)
+  - [Release protocol](#release-protocol)
+    - [The five rules](#the-five-rules)
+    - [Roles](#roles)
+    - [The route of a change](#the-route-of-a-change)
+    - [Restricted areas](#restricted-areas)
+    - [Full documents](#full-documents)
   - [Source Control](#source-control)
     - [Branching](#branching)
     - [Commits](#commits)
     - [PR and Deploy Mandatory Steps](#pr-and-deploy-mandatory-steps)
       - [Team commitments](#team-commitments)
-      - [Versioning Definitions](#versioning-definitions)
+      - [Versioning](#versioning)
       - [Mandatory steps](#mandatory-steps)
+      - [Rollback, urgent fix and break-glass](#rollback-urgent-fix-and-break-glass)
   - [Cloud and Infrastructure](#cloud-and-infrastructure)
   - [Claude Code Setup](#claude-code-setup)
   - [Project Documentation](#project-documentation)
@@ -44,23 +53,24 @@ So, while Scrum is more structured and prescriptive, Kanban is more flexible and
 
 ### Cronos
 
-For feature development we use one-week **Cronos cycles** — a structured methodology for human-validated, AI-augmented engineering. The full framework documentation lives in [`cronos/`](./cronos/).
+For feature development we use one-week **Cronos cycles** — a structured methodology for AI-augmented engineering. Cronos is the build cadence: it organises the work. Code ships through the [daily release](#release-protocol), not at the end of the cycle. The full framework documentation lives in [`cronos/`](./cronos/).
 
 **Quick reference:**
 
 | Day | Phase | Focus |
 |-----|-------|-------|
-| Monday | Initialization | Plan review, scaffolding, architecture decisions |
+| Monday | Initialization | Tickets, file-level plans with rollback, architecture decisions |
 | Tue–Wed | Vibe Coding | Iterative AI-assisted implementation |
-| Thursday | Validation | Automated testing, security scans, QA |
-| Friday | Finalization | Documentation, polish, peer review |
+| Thursday | Validation | Automated testing, security scans, QA on staging |
+| Friday | Finalization | Documentation, polish, cycle review |
 
 **Key rules:**
 
-- Every cycle includes a **mandatory half-day peer review** by someone other than the author.
-- For any non-trivial change (new feature, schema change, API surface, cross-repo integration): **present the plan, wait for explicit approval, then implement**.
-- Bug fixes and small refactors do not need the approval gate unless they cross repo boundaries.
-- Cycles can span multiple repos — coordinate via a shared Epic and Monday.com item.
+- Every change has a file-level plan, with its rollback, in the Monday ticket. A `#fix` needs three lines: the change, the expected result, the rollback.
+- Approval before code is needed only for [restricted areas](#restricted-areas), and the approver is a Code Owner.
+- Friday is a cycle review, not a ship or hold decision.
+- A team may ask someone to validate risky work. This is optional and is not a release gate.
+- Cycles can span multiple repos. Coordinate via a shared Epic in Monday.com. Each PR maps to one ticket.
 
 See [`cronos/README.md`](./cronos/README.md) for the full methodology, roles, and requirements.
 
@@ -94,9 +104,76 @@ Regarding people management, every team member should have a touching point with
 
 Our tool for handling personal development is [Ninety](https://www.ninety.io/). Using the [EOS](https://www.eosworldwide.com/) methodology, we run meetings with a clear agenda and goals. Manage Rocks and To-Dos, and have a clear view of the company's vision and mission. This tool is also helpful for evaluations, with tools such as [People Analyzer](https://www.eosworldwide.com/people).
 
+## Release protocol
+
+One track, two checkpoints. It applies to every repo that deploys to customers. Where it differs from an older rule in this repository, the protocol wins. Outside contributors should start with the [Contributor Guide](./ContributorGuide.md).
+
+**The route in short:** ticket → plan → branch from `staging` → PR #1 to `staging` with the template, under 2,000 changed lines → CI and the Copilot verdict (Checkpoint 1) → staging check → release PR from `staging` to `main`, opened by the Release Captain, checked by an engineer with no change in it (Checkpoint 2) → daily release → message and verify within 30 minutes → rollback if it fails.
+
+### The five rules
+
+1. **No ticket, no pull request.**
+2. **Nobody pushes straight to `staging` or `main`,** and nobody deploys from a laptop.
+3. **Nobody ships their own change alone.** AI reviews the code; a second person authorizes the release.
+4. **No real patient data outside production.** Not in staging, tickets, PRs, screenshots, test files, or AI tools.
+5. **Data changes can't be rolled back.** Add first, remove in a later release.
+
+### Roles
+
+| Role | Can |
+|---|---|
+| **Contributor** | Open PRs, merge to `staging` once approved. No production access |
+| **Core Engineer and Code Owner** | Everything a contributor can, plus release checks and approvals in restricted areas |
+| **Sponsor** | A core engineer who reads a contributor's code and checks their change in production with them |
+| **Release Captain** | Runs the daily release, owns rollback calls, does the weekly sample |
+| **Tech Lead** | Reviews contributor access each quarter and, with Product, sets the sprint objective |
+
+### The route of a change
+
+1. **Ticket.** A Monday ticket with requirements, expected output, one owner, and a target date. A contributor's ticket also names the sponsor. Tag it `#fix` only for a fix. A `#fix` is high priority: it must be in production within 8 hours, or by the end of the day.
+2. **Plan.** Before any code, write a file-level plan with its rollback in the ticket. An engineer approves it first only when the change touches a [restricted area](#restricted-areas); the approver is then a Code Owner. A `#fix` needs three lines: the change, the expected result, the rollback.
+3. **Build.** In repos with `staging` (every customer-facing repo), branch from `staging`. Other repos follow their own README or CLAUDE.md. Name the branch `<type>/<ticket-id>-<slug>` (for example `fix/9929382056-phone-validation`). Open **PR #1 to `staging`** using the template, with every section filled in.
+4. **Checkpoint 1: AI code review.** CI runs (typecheck, lint, tests, build, secret scan) and Copilot reviews with the DearDoc instructions.
+
+   | Copilot's verdict | What happens |
+   |---|---|
+   | Clean or Low | Merge to `staging` |
+   | Medium | Fix it, or answer it in the PR with a reason. Then merge |
+   | High | Fix it. Copilot re-reviews, and a teammate must approve |
+   | Restricted area | A Code Owner must approve |
+
+   If an outside contributor's change touches logic (anything beyond copy, styling, layout, tests, or docs), the sponsor reads the code and approves before it merges. A `#fix` has one human review, by the engineer who merges the release to `main`.
+5. **Staging.** Merging deploys to staging, and E2E tests run after every merge. Until the testing agent exists, the author (the sponsor, for a contributor) checks by hand against the ticket and records what they saw in the PR. If it passes, the change waits on `staging` for the next release. If it fails, it is reverted from `staging` straight away, and the author fixes it on a new branch from `staging` with a new PR.
+6. **Checkpoint 2: release check.** The Release Captain opens a release PR from `staging` to `main`. An engineer with no change of their own in the release checks that every change matches its ticket, had its Checkpoint 1 review on PR #1 (Copilot's verdict does not count for the release PR itself), passed E2E on the exact commit, has its rollback written down, and that restricted areas have Code Owner approval. Then they approve and merge.
+7. **Deploy.** The daily release runs **Monday to Thursday at 16:00 Madrid**. There are no Friday deploys except fixes and rollbacks. Each release is tagged `vYYYY.MM.DD.N`.
+8. **Message and verify.** After every deploy, each committer and sponsor with a change in it gets a message with the version tag and tickets. Within 30 minutes each committer confirms the change in production and records it on the ticket. Contributors verify through the UI, and their sponsor confirms.
+
+**If it fails, roll back.** See [Rollback, urgent fix and break-glass](#rollback-urgent-fix-and-break-glass).
+
+### Restricted areas
+
+These always need an approved plan, Code Owner approval on both PRs, and the Release Captain present at deploy. Copilot does not approve them.
+
+- Login and permissions, `firestore.rules`, `storage.rules`
+- Secrets handling
+- Where patient data is sent
+- Payments and billing
+- Database migrations
+- Deploy and CI configuration: `.github/`, `firebase.json`, `.firebaserc`, Terraform, IAM
+- AI review and agent instructions: `CLAUDE.md`, `AGENTS.md`, `REVIEW.md`, `*.instructions.md`
+- New third-party services, SDKs, AI tools, or runtime packages
+- The AI chat's prompts, model, tools, or what it says to patients
+- Telephony (Twilio, Bandwidth)
+
+### Full documents
+
+- [Release protocol: core](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol.md) (private wiki; needs access to the DearDoc-Development organization)
+- [Release protocol: full reference](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol-full.md) (private wiki)
+- [Contributor Guide](./ContributorGuide.md): one page for outside contributors
+
 ## Source Control
 
-This chapter will describe the best practices for source control, including branching, commits, and pull requests.
+This chapter describes how source control works with the release protocol: branching, commits, and pull requests.
 
 All the code should be stored in a source control system. We will use [Github](github.com) as our source control system.
 
@@ -105,19 +182,19 @@ Every project should be created under our company Github account, [DearDoc](http
 ### Branching
 
 When working in a project it is important to follow a branching strategy that allows for a clean and organized codebase.
-We will use [Github Flow](https://githubflow.github.io/) as our branching strategy. This strategy is simple and effective, and it is based on the following principles:
+We follow the [route of a change](#the-route-of-a-change) in the release protocol:
 
-- Anything in the `main` branch is always deployable.
-- To work on something new, create a descriptively named branch off of `main` (ie: `new-oauth2-scopes`).
-- Commit to that branch locally and regularly push your work to the same named branch on the server.
-- When you need feedback or help, or you think the branch is ready for merging, open a pull request to staging if available.
-- `Staging Environment`: If a Staging environment exists, it must be used for verification before merging to `main` (Production) following the instructions bellow.
-- `No Staging Environment`: If no Staging environment exists, all mandatory checks and reviews must be performed before merging directly to main.
-- Mandatory Protection: The `main` branch (and/or vanta_production) is a protected branch.
-- No Admin Bypass: Branch protection settings apply to everyone, including administrators. No one can push directly to main or merge without meeting approval requirements.
-- Review: Every merge needs an approving review from someone other than the author. In repositories where Copilot approvals are enabled, that review can come from Copilot code review on `staging` and `main`, except for High-Risk changes, which need a human peer (see the note under Mandatory steps). Other production branches, such as `vanta_production`, need a human peer. A person always merges.
-- Once it is merged and pushed to `main`, you can and should deploy immediately.
-- After checking the main deploy delete the feature/fix branch to keep the repo clean
+- `staging` is always releasable, because every release ships all of it. `main` is production.
+- In repos with `staging` (every customer-facing repo), create every branch from `staging`. Other repos follow their own README or CLAUDE.md. Name branches `<type>/<ticket-id>-<slug>` (for example `feat/9929382056-new-button`). The `<type>` uses the commit types below.
+- Commit to that branch and push it regularly.
+- Open a pull request to `staging` using the template. Keep it under 2,000 changed lines.
+- Merging to `staging` deploys to staging. After the staging check passes, the change waits for the daily release.
+- The Release Captain opens the release PR from `staging` to `main`. An engineer with no change in it checks and merges it. Merging deploys to production.
+- Branch protection on `staging` and `main` (no direct pushes, required approvals, and Code Owner review on `main`) is being set up (release protocol, to build). Until it is live, follow these rules by hand.
+- Once it is live, there is no Admin Bypass: branch protection applies to everyone, including administrators. The only way around it is [break-glass](#rollback-urgent-fix-and-break-glass).
+- Customer-facing repos must have a `staging` branch and environment. A repo without one must add it. Until then it is an exception, tracked with a ticket.
+- Delete the feature or fix branch after it is merged.
+- `vanta_production` is not covered by the release protocol. Ask the Tech Lead how it applies to your repo before relying on it.
 
 ### Commits
 
@@ -127,20 +204,22 @@ Regarding the periodicity of commits, we should commit often and in small chunks
 
 Regarding the commit messages, we should follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. In this way we should have a semantic way of writing commit messages that will allow for automatic changelog generation and other benefits.
 
+Every branch and every PR carries a Monday ticket ID. A ticket is mandatory for each PR.
+
 The structure of a commit should have this structure:
 
 ```md
 <type>[optional scope]: <description>
 
 [optional body]
-[optional Monday Ticket if related with any task or support issue - Format: "Item Name #123456" or just "#123456"]
+[Monday ticket ID - Format: "Item Name #123456" or just "#123456"]
 
 [optional footer(s)]
 ```
 
 The types of commits are:
 
-- `BREAKING CHANGE`: a commit that has a footer `BREAKING CHANGE: <description>` will be part of the next major release.
+- `BREAKING CHANGE`: a commit that has a footer `BREAKING CHANGE: <description>`. Describe the change and its rollback plan in the ticket. Releases are tagged `vYYYY.MM.DD.N`, so a breaking change does not change the version number.
 - `feat`: a new feature for the user, not a new feature for build script
 - `fix`: a bug fix for the user, not a fix to a build script
 - `docs`: changes to the documentation
@@ -158,58 +237,32 @@ Includes a database migration with a new model in the backend to handle the user
 
 #### Team commitments
 
-- `24h review`: if one is mentioned as a reviwer then in less than 24 hours he must respond or designate another person for the job.
-- `Monday link`: If the PR is related with a ticket in Monday Dev platform the number of the item must be writen in your GitHub PR title or description (check commit example).
-- `SOC2 Compliance`: Under no circumstances should branch protections be disabled to speed up a deployment.
+- `24h review`: if you are named as a reviewer, you must respond or hand the review to someone else within 24 hours.
+- `Monday link`: every PR links its Monday ticket. Write the item number in the PR title or description (see the commit example). No ticket, no PR.
+- `SOC2 Compliance`: branch protection is never disabled to speed up a deployment, except through [break-glass](#rollback-urgent-fix-and-break-glass).
 
-#### Versioning Definitions
+#### Versioning
 
-- `Fix/small PR`: Treated as a minor version.
-- `Feature`: Treated as a major version.
+Every production deploy is tagged `vYYYY.MM.DD.N`. Commit types do not set the version.
 
 #### Mandatory steps
 
-1. **Fix** - `fix/docs/chore` - Excepting Emergency Hotfix (below)
-     - Step 1: Localhost - Develop and test changes locally.
-     - Step 2: PR to Staging
-       - **Required Reviews:** 1 Peer Reviewer + Copilot Review.
-       - **Required Checks:** CI/CD (GitHub Action checks) must pass.
-     - Step 3: PR to Production (main)
-       - **Required Reviews:** 1 Peer Reviewer + Copilot Review.
-       - **Required Checks:** CI/CD (GitHub Action checks) must pass.
+Every change follows the [route of a change](#the-route-of-a-change): plan in the ticket, PR to `staging`, Checkpoint 1 (CI and the Copilot verdict), staging check, then the release PR to `main` (Checkpoint 2) and the daily release.
 
-2. **Small PRs group (Minor Version)** - `feat/s` (small)
-      - Step 1: Localhost - Develop and test changes locally.
-      - Step 2: PR to Staging
-        - **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
-        - **Required Checks:** CI/CD (GitHub Action checks) must pass.
-      - Step 3: PR to Production (main)
-        - **Required Reviews:** 1 Peer Reviewer + Copilot Review.
-        - **Required Checks:** CI/CD (GitHub Action checks) must pass.
+- Required checks: the CI checks must pass on every PR.
+- The author, or the sponsor for a contributor, records the staging check in the PR. There is no separate QA reviewer role.
+- Copilot's approval never counts on `main`. The release check on `main` is done by an engineer with no change in the release.
+- **Restricted areas** (the [list above](#restricted-areas)) need an approved plan, Code Owner approval on both PRs, and the Release Captain present at deploy. Copilot does not approve them, and does not approve while a High finding is open.
 
-3. **Feature (Major Version)** `feat/BREAKING CHANGE`
-      - Step 1: Localhost - Develop and test changes locally.
-      - Step 2: PR to Staging
-        - **Required Reviews:** 1 Peer Reviewer + Copilot Review + QA Reviewer.
-        - **Required Checks:** CI/CD (GitHub Action checks) must pass.
-      - Step 3: PR to Production (main)
-        - **Tagging: Tag the Feature code.**
-        - **Required Reviews:** 1 Peer Reviewer + Copilot Review.
-        - **Required Checks:** CI/CD (GitHub Action checks) must pass.
+#### Rollback, urgent fix and break-glass
 
-  Note: "Copilot Review" means Copilot code review runs automatically on the pull request. In repositories where Copilot approvals are enabled, a Copilot approval on a `staging` or `main` pull request fills the single Peer Reviewer slot under our SOC 2 change-management control, so no second approval is needed. Copilot does not approve High-Risk changes, so a human peer must approve changes involving: authentication, authorization, security rules (`firestore.rules`, `storage.rules`), secrets handling, patient data routing, payment or billing logic, database migrations, CI/CD workflows, deploy config (`firebase.json`), review and agent instructions (`.github/`, `CLAUDE.md`, `AGENTS.md`, `REVIEW.md`, `*.instructions.md`), a new third-party service, SDK, AI tool or runtime package (not version bumps or dev-only packages), and changes to how the AI chat interacts with patients. Copilot also does not approve while a High-Severity finding is open. Repositories with Copilot approvals enabled (trial): `deardoc-dashboard-frontend`, `deardoc-dashboard-backend` and `deardoc-dashboard-web-integration`.
-
-1. **Emergency Hotfix Protocol** ("Break Glass")
-Since Admin Bypass is disabled to meet SOC2 requirements, the following protocol must be followed for critical production outages (P0) where the standard flow is too slow:
-  a. Accelerated Review: During an outage, the developer must alert the #engineer Slack channel.
-  b. Solution 1: Rollback the problematic changes.
-  c. Solution 2 (If rollback is not feasible):
-      - Commit Fix: Push the fix to a new branch and immediately open a PR.
-      - On-Call Approval: Alert the #engineer Slack channel. Any available engineer (regardless of seniority) can perform a rapid review to provide the mandatory 1-approval.
-      - Audit Trail: If a branch protection rule must be temporarily modified by an Org Admin to resolve a catastrophic failure (extreme cases only):
-          - The change must be documented in a Monday.com ticket.
-              - The rule must be re-enabled immediately after the hotfix.
-              - A post-mortem must be conducted to explain why the bypass was necessary for the compliance audit log.
+1. **Rollback.** Any core engineer redeploys the previous version tag with the `rollback` workflow (being built; until it exists, the Release Captain decides how to roll back). No approval is needed. Roll back first, investigate second. Then revert the change that caused it on `staging`, or the next release ships it again.
+2. **Urgent fix.** Use the `#fix` route: a ticket tagged `#fix` with three lines (the change, the expected result, the rollback), one human review by the engineer who merges the release, and release as soon as it passes E2E. It must be in production within 8 hours or by the end of the day.
+3. **Break-glass.** Admin Bypass is disabled to meet SOC 2 requirements. For critical production outages (P0) where the standard flow is too slow, alert the #engineer Slack channel. If a branch protection rule must be temporarily modified by an Org Admin to resolve a catastrophic failure (extreme cases only):
+   - Document the change in a Monday.com ticket.
+   - Re-enable the rule immediately after the fix.
+   - Hold a post-mortem to explain why the bypass was necessary, for the compliance audit log.
+   - Name every use at the next standup.
 
 ## Cloud and Infrastructure
 
@@ -232,9 +285,11 @@ The Claude Code setup lives in the private [ai-toolkit](https://github.com/DearD
 - [Org-wide CLAUDE.md](https://github.com/DearDoc-Development/ai-toolkit/blob/main/agents/org-claude.md): the instructions every DearDoc repository shares. [How to import it](https://github.com/DearDoc-Development/ai-toolkit/blob/main/skills/INTEGRATION.md#importing-the-org-wide-claudemd).
 - [Claude Code guardrails](https://github.com/DearDoc-Development/ai-toolkit/blob/main/knowledge/claude-code-guardrails.md): how every engineer sets up Claude Code on their machine.
 
+- **Approved tools only, no real patient data.** Use only approved AI tools. Never put real patient data in a prompt. Say in the PR how much of the change was AI-generated.
+
 ## Project Documentation
 
-To maintain a standard structure while developing new projects, it is recommended to use the [Technical Documentation](./TechnicalDocumentation.md) file as a template for your project's README.md file.
+To maintain a standard structure while developing new projects, it is recommended to use the [Technical Documentation](./TechnicalDocumentation.md) file as a template for your project's README.md file. When a change alters the architecture, update the Architecture document in the same PR.
 
 ## Modifications
 

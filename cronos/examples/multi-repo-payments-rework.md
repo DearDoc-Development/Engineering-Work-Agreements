@@ -1,5 +1,7 @@
 # Example Cycle: Multi-Repo Payments Rework
 
+> **Editor's note:** this case study was written before the [release protocol](../../README.md#release-protocol). Under the protocol, this work would need Code Owner approval (payments, security rules, and secrets are restricted areas), a separate ticket and PR for each change, and the Release Captain present at deploy. The half-day Validator gate described below is no longer a release gate.
+
 A real Cronos cycle, sanitized. Useful as a worked example of what a high-risk, multi-repo cycle looks like in practice — what worked, what didn't, what the playbook caught and what it missed.
 
 ## The setup

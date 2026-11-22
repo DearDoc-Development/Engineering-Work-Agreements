@@ -72,6 +72,8 @@ This reduces the duration of our tests, removes an external dependency and we ca
 
 The API mock responses and errors should match actual responses and errors from the API. The idea is to be able to test as if real HTTP calls were being made.
 
+Match the shape of real responses, but fill them with synthetic values. Never paste a captured production payload into a test file. This is rule 4 of the [release protocol](./README.md#the-five-rules). Tests run in CI at [Checkpoint 1](./README.md#the-route-of-a-change).
+
 ### Clean up
 
 It is very important to do some clean up every time a function is mocked. If the mocks aren't cleared then it might lead to some unexpected behavior in other tests.

@@ -40,8 +40,9 @@ Please provide detailed steps on how to install and set up the project and its d
 
 Elaborate on how to run the automatic tests for this system:
 
-- Specify any necessary setup or data required before testing.
+- Specify any necessary setup or data required before testing. Use synthetic data only, never real patient data.
 - Mention different types of testing that are available (unit tests, integration tests, etc.), and how to initiate each.
+- List the CI checks that run on every PR: typecheck, lint, tests, build, and secret scan.
 
 #### **Error and Monitoring**
 
@@ -52,9 +53,14 @@ Explain how errors are handled in the project, including logging and monitoring:
 
 #### **Deployment**
 
-Detailed instructions on how to deploy the software in a live system:
+Describe the CI pipeline. There are no manual production steps.
 
-- Cover required environment settings, configuration files, or dependencies that need to be set up specifically for deployment.
+- Merging to `staging` deploys to staging. Merging the release PR from `staging` to `main` deploys to production.
+- Each production deploy is tagged `vYYYY.MM.DD.N`.
+- To roll back, run the `rollback` workflow with the previous version tag (being built; until it exists, the Release Captain decides how to roll back).
+- Cover required environment settings, configuration files, or dependencies the pipeline needs. Never write secrets here.
+
+See the [release protocol](https://github.com/DearDoc-Development/Engineering-Work-Agreements#release-protocol).
 
 ## Usage
 
@@ -65,6 +71,7 @@ Provide step-by-step examples of how to use the software, highlighting common us
 Describe the logic architecture of the project and if possible, a diagram showing the different components and how they interact. Recommended if the project has more than two agents (a simple server-client project has two agents).
 It Also includes a brief explanation of the design patterns used in the project. As well as communication patterns.
 If the project is heavily based on Cloud Architecture, include the services used and how they interact.
+Update this section in the same PR when a change alters the architecture.
 
 ### API Endpoints
 
@@ -103,14 +110,14 @@ If the project is a Node.js based project, a .nvmrc file with the version of nod
 
 Provide guidelines on how prospective contributors can participate in the project:
 
-- Link to a CONTRIBUTING.md file if available, which should include standards for coding practices, pull request guidelines, and the roadmap for upcoming features.
+- Link to the [Contributor Guide](https://github.com/DearDoc-Development/Engineering-Work-Agreements/blob/main/ContributorGuide.md) and the [release protocol](https://github.com/DearDoc-Development/Engineering-Work-Agreements#release-protocol). Add a CONTRIBUTING.md only for rules specific to this project.
 
 ### **Versioning**
 
 Information on the versioning scheme used for the project, advice on how to access different versions, or how to see the change log. This could include:
 
-- Instructions or links on how to use Git tags to find specific releases.
-- A brief explanation of the semantic versioning system (or another system, if used), linking to external resources or documentation if necessary.
+- Each production deploy is tagged `vYYYY.MM.DD.N` (date, then the number of the deploy that day).
+- Instructions or links on how to use Git tags to find specific releases or the change log.
 
 ### **Authors**
 

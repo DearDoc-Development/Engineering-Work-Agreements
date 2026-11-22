@@ -217,6 +217,12 @@ Popular tools for end-to-end testing include:
 - **Puppeteer**: A Node.js library for controlling headless Chrome or Chromium over the DevTools Protocol.
 - **TestCafe**: A Node.js tool for testing web applications across all browsers.
 
+#### How this maps to our release
+
+- E2E tests run on staging after every merge to `staging`. For now the author (or the sponsor, for a contributor) does this check by hand and records it in the PR.
+- Staging holds synthetic data only, never real patient data.
+- After each production deploy, the committer checks their change in production within 30 minutes. See the [release protocol](./README.md#the-route-of-a-change).
+
 ### Acceptance Testing
 
 Acceptance testing constitutes a formal verification process that evaluates whether a system fulfills defined business requirements and specifications. Unlike lower-level tests, acceptance tests operate in a complete application environment, validating software from the user's perspective by simulating real user interactions and workflows. These tests serve as the final quality gateway before software delivery, confirming that the developed solution meets stakeholder expectations and delivers the intended business value.

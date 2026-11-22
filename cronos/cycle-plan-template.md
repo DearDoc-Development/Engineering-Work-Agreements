@@ -1,17 +1,17 @@
 # Cycle Plan Template (the "Rigorous Plan")
 
-The Implementer writes this on Monday morning and posts it before writing any code. It goes through **Mission Control** — the PM (or tech lead) approves it before implementation starts. This is the cheapest hour of the cycle: catching a misaligned approach in prose costs minutes; catching it in committed code costs days.
+The Implementer writes this on Monday morning and posts it before writing any code. It goes through **Mission Control** only when the change touches a [restricted area](../README.md#restricted-areas): then a Code Owner approves it before implementation starts. This is the cheapest hour of the cycle: catching a misaligned approach in prose costs minutes; catching it in committed code costs days.
 
 The PRD ([prd-template.md](prd-template.md)) defines *what* and *why*. This plan defines *how* — at a level concrete enough that approval means something.
 
-Copy this file to your project tracker (Linear / Monday / Notion) or to `docs/projects/<name>/cycle-N-plan.md`. Delete the explanatory blockquotes when filling it in.
+The plan goes in the Monday ticket. You may also keep a copy at `docs/projects/<name>/cycle-N-plan.md`. Delete the explanatory blockquotes when filling it in.
 
 ---
 
 # Cycle <N> Plan — <Project Name>
 
 **Implementer:** <name>
-**Validator:** <different name — must not be the Implementer>
+**Validator (optional):** <different name — must not be the Implementer>
 **Risk tier:** Low / Medium / High (from the PRD)
 **Cycle dates:** YYYY-MM-DD → YYYY-MM-DD
 
@@ -57,6 +57,7 @@ Copy this file to your project tracker (Linear / Monday / Notion) or to `docs/pr
 - **Auth / claims:** ...
 - **Permissions / rules:** ...
 - **Backwards compatibility:** does this break existing clients? If yes, what's the migration path?
+- **Data change:** data changes can't be rolled back. Add first (expand), and remove in a later release (contract). Write both steps here.
 
 ## 6. Test approach
 
@@ -71,13 +72,13 @@ Copy this file to your project tracker (Linear / Monday / Notion) or to `docs/pr
 
 ## 7. Hot spots
 
-> Places you expect the AI to struggle. Concurrency, race conditions, vendor SDKs with thin docs, non-linear state. Surface them now so the Validator knows where to look hardest.
+> Places you expect the AI to struggle. Concurrency, race conditions, vendor SDKs with thin docs, non-linear state. Surface them now so reviewers know where to look hardest.
 
 - ...
 
-## 8. Validator's pre-brief
+## 8. Reviewer's pre-brief
 
-> One paragraph the Validator can read on Thursday afternoon to start their half-day cold. Tell them what changed, what to challenge, what to ignore as out-of-scope.
+> One paragraph a reviewer (or an optional Validator) can read to start cold. Tell them what changed, what to challenge, what to ignore as out-of-scope.
 
 ...
 
@@ -92,17 +93,19 @@ Copy this file to your project tracker (Linear / Monday / Notion) or to `docs/pr
 
 - **Feature flag?** y/n. If yes, name it.
 - **Migration ordering?** ...
-- **How to roll back if Friday's deploy goes wrong:** ...
+- **How to roll back:** redeploy the previous version tag with the `rollback` workflow (being built; until it exists, the Release Captain decides how to roll back), plus any data steps (expand → contract). There are no Friday deploys except fixes and rollbacks, so plan the release for Monday to Thursday.
 
 ## 11. Mission Control sign-off
 
 - [ ] PRD requirements above are covered and don't drift
 - [ ] File-level plan is concrete enough to review
 - [ ] Test approach matches risk tier
-- [ ] Validator named and available Thursday PM / Friday AM
+- [ ] Validator named, if the team asked for one
 - [ ] Cross-repo dependencies sequenced
+- [ ] Restricted area? If yes, Code Owner approver named below
+- [ ] Contributor? If yes, Sponsor named
 
-**Approver:** <name>
+**Approver (Code Owner, for restricted areas):** <name>
 **Approved at:** YYYY-MM-DD HH:MM
 
 ---

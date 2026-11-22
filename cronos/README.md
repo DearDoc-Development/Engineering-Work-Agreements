@@ -6,7 +6,9 @@ Cronos pairs the speed of vibe coding (natural-language intent → AI-generated 
 
 1. **Agent-ready PRDs** — requirements written so an AI can execute them deterministically, not paragraphs an AI has to interpret.
 2. **One-week cycles** — a fixed cadence that forces validation to happen this week, not "later."
-3. **Half-day peer validation** — someone other than the prompter mentally executes the code as an attacker. This catches Author's Bias, the trap where the engineer who prompted the model trusts its confident-sounding output too much.
+3. **Independent review** — someone other than the prompter reads the code as an attacker. This catches Author's Bias, the trap where the engineer who prompted the model trusts its confident-sounding output too much. Under the [release protocol](../README.md#release-protocol), Copilot does this at Checkpoint 1 and an engineer with no change in the release does it at Checkpoint 2. A team may also ask someone to validate risky work, but that is optional and is not a release gate.
+
+Cronos is the build cadence. It organises the work. Code ships through the daily release of the [release protocol](../README.md#release-protocol), not at the end of the cycle.
 
 ## What lives here vs. in the AI toolkit
 
@@ -33,7 +35,7 @@ If you are bootstrapping a new project:
 1. **[methodology.md](methodology.md)** — what Cronos is and why each piece exists. ~5 min.
 2. **[cycle-playbook.md](cycle-playbook.md)** — how a cycle actually runs, day by day, role by role. ~5 min.
 3. **[prd-template.md](prd-template.md)** — copy this when starting a new project. The PM-side scope/stories/testing shell.
-4. **[cycle-plan-template.md](cycle-plan-template.md)** — copy this on Monday morning before writing any code. The implementation plan that goes through Mission Control.
+4. **[cycle-plan-template.md](cycle-plan-template.md)** — copy this on Monday morning before writing any code. The implementation plan, which goes in the Monday ticket.
 5. **[agent-guide.md](agent-guide.md)** — paste-ready policy for any AI agent operating inside a Cronos repo.
 6. **[examples/](examples/)** — sanitized completed cycles. Onboarding gold; copy patterns, not specifics.
 
@@ -41,6 +43,6 @@ If you are an AI agent invoked inside a repo that uses Cronos, jump to **[agent-
 
 ## The shortest possible summary
 
-> A PM writes a deterministic PRD. The team agrees on how many one-week cycles it'll take. Each cycle: scaffold Monday, build Tue–Wed, test Thursday, review-and-document Friday. Half a day of every cycle is mandatory peer validation by someone who didn't prompt the AI. Ship at the end of the week. Repeat.
+> A PM writes a deterministic PRD. The team agrees on how many one-week cycles it'll take. Each cycle: plan and scaffold Monday, build Tue–Wed, test Thursday, review-and-document Friday. Every change ships through the daily release once it has passed review and the staging check. Friday is a cycle review, not a ship-or-hold decision. Repeat.
 
 That's it. Everything else is mechanics.
