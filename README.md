@@ -106,6 +106,8 @@ Our tool for handling personal development is [Ninety](https://www.ninety.io/). 
 
 ## Release protocol
 
+Owner: Project Manager and QA Lead (named on the [release protocol page](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol.md)). Last reviewed: 2026-11-24.
+
 One track, two checkpoints. It applies to every repo that deploys to customers. Where it differs from an older rule in this repository, the protocol wins. Outside contributors should start with the [Contributor Guide](./ContributorGuide.md).
 
 **The route in short:** ticket → plan → branch from `staging` → PR #1 to `staging` with the template, under 2,000 changed lines → CI and the Copilot verdict (Checkpoint 1) → staging check → release PR from `staging` to `main`, opened by the Release Captain, checked by an engineer with no change in it (Checkpoint 2) → daily release → message and verify within 30 minutes → rollback if it fails.
@@ -113,7 +115,7 @@ One track, two checkpoints. It applies to every repo that deploys to customers. 
 ### The five rules
 
 1. **No ticket, no pull request.**
-2. **Nobody pushes straight to `staging` or `main`,** and nobody deploys from a laptop.
+2. **Nobody pushes straight to `staging` or `main`,** and nobody deploys from a laptop. One interim manual step exists today: the backend rules deploy (a backend's Firestore and Storage rules), run by the Release Captain as part of the release. See [In force today](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol.md#in-force-today).
 3. **Nobody ships their own change alone.** AI reviews the code; a second person authorizes the release.
 4. **No real patient data outside production.** Not in staging, tickets, PRs, screenshots, test files, or AI tools.
 5. **Data changes can't be rolled back.** Add first, remove in a later release.
@@ -132,7 +134,7 @@ One track, two checkpoints. It applies to every repo that deploys to customers. 
 
 1. **Ticket.** A Monday ticket with requirements, expected output, one owner, and a target date. A contributor's ticket also names the sponsor. Tag it `#fix` only for a fix. A `#fix` is high priority: it must be in production within 8 hours, or by the end of the day.
 2. **Plan.** Before any code, write a file-level plan with its rollback in the ticket. An engineer approves it first only when the change touches a [restricted area](#restricted-areas); the approver is then a Code Owner. A `#fix` needs three lines: the change, the expected result, the rollback.
-3. **Build.** In repos with `staging` (every customer-facing repo), branch from `staging`. Other repos follow their own README or CLAUDE.md. Name the branch `<type>/<ticket-id>-<slug>` (for example `fix/9929382056-phone-validation`). Open **PR #1 to `staging`** using the template, with every section filled in.
+3. **Build.** In repos with `staging`, branch from `staging`. Other repos follow their own README or CLAUDE.md. Name the branch `<type>/<ticket-id>-<slug>` (for example `fix/1234567890-phone-validation`). Open **PR #1 to `staging`** using the template, with every section filled in.
 4. **Checkpoint 1: AI code review.** CI runs (typecheck, lint, tests, build, secret scan) and Copilot reviews with the DearDoc instructions.
 
    | Copilot's verdict | What happens |
@@ -142,10 +144,17 @@ One track, two checkpoints. It applies to every repo that deploys to customers. 
    | High | Fix it. Copilot re-reviews, and a teammate must approve |
    | Restricted area | A Code Owner must approve |
 
-   If an outside contributor's change touches logic (anything beyond copy, styling, layout, tests, or docs), the sponsor reads the code and approves before it merges. A `#fix` has one human review, by the engineer who merges the release to `main`.
+   If an outside contributor's change touches logic (anything beyond copy, styling, layout, tests, or docs), the sponsor reads the code and approves before it merges. A `#fix` has one human review, by the engineer who merges the release to `main`, and that engineer reads the code.
 5. **Staging.** Merging deploys to staging, and E2E tests run after every merge. Until the testing agent exists, the author (the sponsor, for a contributor) checks by hand against the ticket and records what they saw in the PR. If it passes, the change waits on `staging` for the next release. If it fails, it is reverted from `staging` straight away, and the author fixes it on a new branch from `staging` with a new PR.
-6. **Checkpoint 2: release check.** The Release Captain opens a release PR from `staging` to `main`. An engineer with no change of their own in the release checks that every change matches its ticket, had its Checkpoint 1 review on PR #1 (Copilot's verdict does not count for the release PR itself), passed E2E on the exact commit, has its rollback written down, and that restricted areas have Code Owner approval. Then they approve and merge.
-7. **Deploy.** The daily release runs **Monday to Thursday at 16:00 Madrid**. There are no Friday deploys except fixes and rollbacks. Each release is tagged `vYYYY.MM.DD.N`.
+6. **Checkpoint 2: release check.** The Release Captain opens a release PR from `staging` to `main`. An engineer with no change of their own in the release checks that:
+   - every change matches its ticket, and nothing else is in it;
+   - each change was approved by Copilot or a person in its place, no High finding is open, and restricted areas have Code Owner approval;
+   - E2E passed on the exact staging commit being released;
+   - each change has its rollback written, and data changes add first, remove later;
+   - for a contributor's logic change, a core engineer has read the code: the sponsor, or for a `#fix`, you.
+
+   Then they approve and merge. If every core engineer has a change in the release, two of them approve.
+7. **Deploy.** The daily release runs **Monday to Thursday at 16:00 Madrid**. There are no Friday deploys except fixes and rollbacks. Each release is tagged `vYYYY.MM.DD.N` (version tags are not live yet; they are being set up).
 8. **Message and verify.** After every deploy, each committer and sponsor with a change in it gets a message with the version tag and tickets. Within 30 minutes each committer confirms the change in production and records it on the ticket. Contributors verify through the UI, and their sponsor confirms.
 
 **If it fails, roll back.** See [Rollback, urgent fix and break-glass](#rollback-urgent-fix-and-break-glass).
@@ -185,14 +194,14 @@ When working in a project it is important to follow a branching strategy that al
 We follow the [route of a change](#the-route-of-a-change) in the release protocol:
 
 - `staging` is always releasable, because every release ships all of it. `main` is production.
-- In repos with `staging` (every customer-facing repo), create every branch from `staging`. Other repos follow their own README or CLAUDE.md. Name branches `<type>/<ticket-id>-<slug>` (for example `feat/9929382056-new-button`). The `<type>` uses the commit types below.
+- In repos with `staging`, create every branch from `staging`. Other repos follow their own README or CLAUDE.md. Name branches `<type>/<ticket-id>-<slug>` (for example `feat/1234567890-new-button`). The `<type>` uses the commit types below.
 - Commit to that branch and push it regularly.
 - Open a pull request to `staging` using the template. Keep it under 2,000 changed lines.
 - Merging to `staging` deploys to staging. After the staging check passes, the change waits for the daily release.
 - The Release Captain opens the release PR from `staging` to `main`. An engineer with no change in it checks and merges it. Merging deploys to production.
-- Branch protection on `staging` and `main` (no direct pushes, required approvals, and Code Owner review on `main`) is being set up (release protocol, to build). Until it is live, follow these rules by hand.
-- Once it is live, there is no Admin Bypass: branch protection applies to everyone, including administrators. The only way around it is [break-glass](#rollback-urgent-fix-and-break-glass).
-- Customer-facing repos must have a `staging` branch and environment. A repo without one must add it. Until then it is an exception, tracked with a ticket.
+- Some protections are in force today and some are being set up. See [In force today](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol.md#in-force-today) for which is which. Until a control exists, follow the rule by hand (see [In force today](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol.md#in-force-today)).
+- Admins can't bypass `main` today. Code Owner review is being set up. Branch protection applies to everyone, including administrators. The only way around it is [break-glass](#rollback-urgent-fix-and-break-glass).
+- Customer-facing repos must have a `staging` branch and environment. A repo without one must add it. Until then it is an exception, tracked with a ticket. See [In force today](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol.md#in-force-today).
 - Delete the feature or fix branch after it is merged.
 - `vanta_production` is not covered by the release protocol. Ask the Tech Lead how it applies to your repo before relying on it.
 
@@ -243,7 +252,7 @@ Includes a database migration with a new model in the backend to handle the user
 
 #### Versioning
 
-Every production deploy is tagged `vYYYY.MM.DD.N`. Commit types do not set the version.
+Every production deploy is meant to be tagged `vYYYY.MM.DD.N`. Version tags are not live yet; they are being set up. Commit types do not set the version.
 
 #### Mandatory steps
 
@@ -258,7 +267,7 @@ Every change follows the [route of a change](#the-route-of-a-change): plan in th
 
 1. **Rollback.** Any core engineer redeploys the previous version tag with the `rollback` workflow (being built; until it exists, the Release Captain decides how to roll back). No approval is needed. Roll back first, investigate second. Then revert the change that caused it on `staging`, or the next release ships it again.
 2. **Urgent fix.** Use the `#fix` route: a ticket tagged `#fix` with three lines (the change, the expected result, the rollback), one human review by the engineer who merges the release, and release as soon as it passes E2E. It must be in production within 8 hours or by the end of the day.
-3. **Break-glass.** Admin Bypass is disabled to meet SOC 2 requirements. For critical production outages (P0) where the standard flow is too slow, alert the #engineer Slack channel. If a branch protection rule must be temporarily modified by an Org Admin to resolve a catastrophic failure (extreme cases only):
+3. **Break-glass.** Admin Bypass is disabled to meet SOC 2 requirements. Break-glass also covers urgent compliance fixes made in the console. They must be codified afterwards. For critical production outages (P0) where the standard flow is too slow, alert the #engineer Slack channel. If a branch protection rule must be temporarily modified by an Org Admin to resolve a catastrophic failure (extreme cases only):
    - Document the change in a Monday.com ticket.
    - Re-enable the rule immediately after the fix.
    - Hold a post-mortem to explain why the bypass was necessary, for the compliance audit log.

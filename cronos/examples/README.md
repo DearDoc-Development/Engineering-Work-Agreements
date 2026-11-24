@@ -6,7 +6,7 @@ The full unsanitized versions — with the actual prompts, mocks, and decisions 
 
 ## Index
 
-- [multi-repo-payments-rework.md](multi-repo-payments-rework.md) — High-risk cycle touching four repos in one week. Removes a misplaced encryption layer, simplifies a vendor integration, fixes a CMS bug, and reworks an email + receipt flow. Demonstrates: cross-repo coordination, type-first refactors, the half-day Validator gate under high risk, and what happens when format scripts overreach.
+- [multi-repo-payments-rework.md](multi-repo-payments-rework.md) — High-risk cycle touching four repos in one week. Removes a misplaced encryption layer, simplifies a vendor integration, fixes a CMS bug, and reworks an email + receipt flow. Demonstrates: cross-repo coordination, type-first refactors, the half-day Validator gate under high risk (historical, from before the release protocol; see the two protocol checkpoints), and what happens when format scripts overreach.
 
 ## How to read these
 

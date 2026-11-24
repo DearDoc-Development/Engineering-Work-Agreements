@@ -53,10 +53,10 @@ Explain how errors are handled in the project, including logging and monitoring:
 
 #### **Deployment**
 
-Describe the CI pipeline. There are no manual production steps.
+Describe the CI pipeline. There are no manual production steps, with one interim exception: the backend rules deploy (a backend's Firestore and Storage rules) is run by the Release Captain as part of the release. See [In force today](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol.md#in-force-today).
 
 - Merging to `staging` deploys to staging. Merging the release PR from `staging` to `main` deploys to production.
-- Each production deploy is tagged `vYYYY.MM.DD.N`.
+- Each production deploy is meant to be tagged `vYYYY.MM.DD.N` (version tags are not live yet; they are being set up).
 - To roll back, run the `rollback` workflow with the previous version tag (being built; until it exists, the Release Captain decides how to roll back).
 - Cover required environment settings, configuration files, or dependencies the pipeline needs. Never write secrets here.
 
@@ -116,7 +116,7 @@ Provide guidelines on how prospective contributors can participate in the projec
 
 Information on the versioning scheme used for the project, advice on how to access different versions, or how to see the change log. This could include:
 
-- Each production deploy is tagged `vYYYY.MM.DD.N` (date, then the number of the deploy that day).
+- Each production deploy is meant to be tagged `vYYYY.MM.DD.N` (version tags are not live yet; being set up) (date, then the number of the deploy that day).
 - Instructions or links on how to use Git tags to find specific releases or the change log.
 
 ### **Authors**

@@ -52,7 +52,7 @@ When the user shifts to verification (Thursday in the cycle):
 - **Bypass hooks or signing.** If a pre-commit hook fails, fix the cause, don't skip the hook.
 - **Amend commits unless explicitly asked.** When a hook fails, the commit didn't happen — `--amend` would modify a *previous* commit and silently rewrite history.
 - **Push to `staging` or `main`, or deploy.** Nobody pushes straight to those branches, and nobody deploys from a laptop. Open a PR instead, and only when the user asks.
-- **Branch from anywhere but `staging`, in repos that have `staging`** (every customer-facing repo). Other repos follow their own README or CLAUDE.md. Name branches `<type>/<ticket-id>-<slug>`, for example `feat/9929382056-new-button`. No ticket, no branch.
+- **Branch from anywhere but `staging`, in repos that have `staging`**. Other repos follow their own README or CLAUDE.md. Name branches `<type>/<ticket-id>-<slug>`, for example `feat/1234567890-new-button`. No ticket, no branch.
 - **Use real patient data in prompts, fixtures, tests, or examples.** Use synthetic values only. If you see real patient data, stop and tell the user.
 - **Continue into a restricted area.** If the change touches one (see the [list](../README.md#restricted-areas)), stop and flag it. A Code Owner must approve first.
 - **Commit `.env` files, credentials, or secrets.** Even if the user added them to staging, flag and refuse.

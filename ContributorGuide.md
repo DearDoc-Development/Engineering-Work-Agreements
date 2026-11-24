@@ -1,5 +1,7 @@
 # Contributing to DearDoc: one page
 
+Owner: Project Manager and QA Lead (named on the [release protocol page](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol.md)). Last reviewed: 2026-11-24.
+
 You're helping build healthcare software. These steps keep patients' data safe and keep your work moving. If anything is unclear, ask your **sponsor**, the DearDoc engineer named on your ticket.
 
 This page follows the [release protocol](./README.md#release-protocol). If the two ever differ, the protocol wins.
@@ -14,7 +16,7 @@ This page follows the [release protocol](./README.md#release-protocol). If the t
 
 1. **Start from the ticket.** It tells you what's needed and what the result should look like. If it doesn't, ask before you start. Only a ticket tagged `#fix` is high priority: it must be live within 8 hours or by the end of the day, so start now and tell your sponsor.
 2. **Write a short plan** in the ticket: which files you will change, and how to undo it. For a `#fix`, three lines are enough: the change, the expected result, and the rollback. You only need to wait for approval if your change touches one of the restricted areas below.
-3. **Create a branch from `staging`.** Name it `<type>/<ticket-id>-<slug>`, like `feat/9929382056-new-button`.
+3. **Create a branch from `staging`.** Name it `<type>/<ticket-id>-<slug>`, like `feat/1234567890-new-button`.
 4. **Keep it small.** One ticket, one change, under 2,000 changed lines. Don't fix other things you notice; tell your sponsor.
 5. **Open a pull request to `staging`** and fill in every section of the template. "I didn't test this" is an acceptable, honest answer.
 6. **Read Copilot's review.**

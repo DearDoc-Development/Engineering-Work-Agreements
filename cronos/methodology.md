@@ -58,7 +58,7 @@ Calibrate review intensity to risk. A CRUD form built from a known pattern needs
 | ---------- | ------------------------------------- | --------------------------------------- |
 | Low        | CRUD UI, settings page, copy change   | Skim diff, run smoke test               |
 | Medium     | New API endpoint                      | Mental execution, edge cases, tests     |
-| High       | Data migrations, any restricted area (see the list), or cross-repo work | Code Owner approval, attacker mindset, sec scan |
+| High       | Data migrations, any restricted area (see the list), or cross-repo work | Attacker mindset, sec scan. Code Owner approval applies to restricted areas only; cross-repo work is High risk but needs no Code Owner unless it touches a restricted area |
 
 ## Technical Health Cycles
 

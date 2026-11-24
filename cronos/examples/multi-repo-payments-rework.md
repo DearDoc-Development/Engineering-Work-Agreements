@@ -102,6 +102,8 @@ All four working trees clean, each repo +1 commit ahead of origin. Push and PR-o
 
 ## Lessons (carryover into the next cycle)
 
+> **Historical:** the half-day Validator gate guidance in these lessons is from before the [release protocol](../../README.md#release-protocol). Today the two protocol checkpoints apply: Checkpoint 1 (AI code review) and Checkpoint 2 (release check).
+
 1. **Cross-repo project doc paid for itself.** Touching four repos in one cycle would have been chaos without `docs/projects/<project>/` as the single source. Keep this pattern for all multi-repo work; resist the temptation to copy excerpts into per-repo `README`s.
 2. **Scope formatters narrowly.** Run `prettier --write` on the directories you actually edited, not the repo root. Wide reformats turn a focused PR into a 60-file review that nobody reads carefully.
 3. **Pre-existing debt is not in scope.** Catalog it (lint backlog, unrelated todo files, stale formatter state) and surface it to the human, but don't fix it in the same PR. Fixes hide inside reformats; reformats hide regressions.
