@@ -36,12 +36,12 @@ The per-resource baselines in [Per-resource baselines](#per-resource-baselines) 
 
 Infrastructure work is not a separate track — it runs through the same gates as application code:
 
-- **Source control.** Terraform changes follow [GitHub Flow and the PR mandatory steps](./README.md#source-control) like any other change. Infrastructure is a `feat`/`fix`/`chore` commit, reviewed by a human peer, never merged by bypassing branch protection.
+- **Source control.** Terraform, IAM, and CI configuration are [restricted areas](./README.md#restricted-areas) in the [release protocol](./README.md#release-protocol). They need an approved plan, Code Owner approval on both PRs (to `staging` and to `main`), and a deploy with the Release Captain present. Infrastructure is a `feat`/`fix`/`chore` commit, never merged by bypassing branch protection.
 - **Cronos cycles.** Provisioning belongs in Monday's initialization phase, so alarms and IAM land in the same cycle as the resource. Thursday's validation includes confirming the resource is green in Vanta. See [`cronos/`](./cronos).
-- **Mission Control gate.** New production resources, IAM changes, and anything touching the network perimeter are non-trivial by definition: present the plan and get explicit approval before applying.
+- **Plan approval.** New production resources, IAM changes, and anything touching the network perimeter are restricted areas: write the plan in the ticket and get the Code Owner's approval before applying.
 - **Documentation.** A new resource is documented in the owning repo's README per [TechnicalDocumentation.md](./TechnicalDocumentation.md) as part of the Friday finalization step.
 - **Compliance is not optional.** Every rule below maps to a HIPAA or SOC 2 control we are audited against. If a rule blocks you, the answer is a ticket and a documented [exception](#exceptions) — never a silent workaround.
-- **CLI fixes get codified.** A `gcloud`/`aws` command is fine to close a finding today; the same change lands in Terraform before the ticket closes, or the next `apply` reverts it and the finding returns.
+- **CLI fixes get codified.** A console or CLI change to production is made only through [break-glass](./README.md#rollback-urgent-fix-and-break-glass). The same change lands in Terraform before the ticket closes, or the next `apply` reverts it and the finding returns.
 
 ## Approved platforms: the two-tier rule
 
@@ -53,7 +53,7 @@ Infrastructure work is not a separate track — it runs through the same gates a
 
 Other platforms (Vercel, Railway, Supabase, Cloudflare, etc.) are fine for experimentation and internal tooling, under these hard conditions:
 
-- **No real patient or customer data. Ever.** Use invented/synthetic data only. This includes exports, screenshots of real records, and chat transcripts.
+- **No real patient or customer data. Ever.** Use invented/synthetic data only. This includes exports, screenshots of real records, and chat transcripts. The same applies to tickets, PRs, test files, and staging (release protocol [rule 4](./README.md#the-five-rules)).
 - **No production credentials.** A prototype never holds keys, tokens, or service accounts that reach production systems — and it doesn't call production APIs, even read-only. Point it at sandbox/staging or mock data.
 - **Label it.** Name and describe it as non-production so nobody mistakes it for a supported system.
 - **Graduation is a migration, not a promotion.** If a prototype proves useful, it moves into AWS/GCP and goes through the full [resource-creation checklist](#creating-a-resource-the-checklist) *before* it touches real data. There is no path where a Tier 2 system starts handling PHI in place.
@@ -66,7 +66,7 @@ If you're unsure which tier something belongs to, the deciding question is: *cou
 
 | Data type                   | Examples                                                                                     | Where it may live                                                                                    | Label value      |
 |-----------------------------|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|------------------|
-| **PHI**                     | Patient names, appointment requests, AI Smartchat transcripts, anything patient-identifiable | Tier 1 only. Encrypted at rest and in transit. Never in logs, prompts, spreadsheets, or screenshots. | `confidential`   |
+| **PHI**                     | Patient names, appointment requests, AI Smartchat transcripts, anything patient-identifiable | Tier 1 only. Encrypted at rest and in transit. Never in logs, prompts, spreadsheets, or screenshots. Never outside production: not in tickets, PRs, test files, or staging. | `confidential`   |
 | **Customer business data**  | Practice configurations, billing, contracts, leads                                           | Tier 1 only.                                                                                         | `confidential`   |
 | **Internal company data**   | Our docs, internal metrics, non-customer content                                             | Tier 1 preferred; Tier 2 with judgment.                                                              | `internal`       |
 | **Synthetic / public data** | Invented sample records, public docs                                                         | Anywhere.                                                                                            | `synthetic`      |
@@ -78,10 +78,10 @@ The last column is the value for the `dataclassification` label on GCP instances
 Every new production resource (database, function, bucket, service, queue) goes through all of these. Vanta continuously checks much of this — the goal is that a new resource comes up green on day one, not that we fix findings later.
 
 01. **Ticket first.** The change is documented and approved in [Monday.com](https://monday.com/) before it happens (this is our SOC 2 change-management control).
-02. **Infrastructure as Code.** Production resources are created via Terraform, not hand-built in the console. Console or CLI changes to production are for emergencies and compliance fixes only, documented after the fact, and codified before the ticket closes.
+02. **Infrastructure as Code.** Production resources are created via Terraform, not hand-built in the console. Console or CLI changes to production happen only through [break-glass](./README.md#rollback-urgent-fix-and-break-glass), are documented after the fact, and are codified before the ticket closes.
 03. **Owner, tags, and inventory.** Every resource has a `VantaOwner` tag (AWS) or `vantaowner` label (GCP) set to an active employee's email, a description, and — if it holds customer data — is marked as containing user data in the Vanta inventory. Resources owned by leavers get reassigned during offboarding.
 04. **Encryption on.** At rest (managed KMS is fine) and in transit (TLS 1.2+). This is the default on both clouds — the rule is: never turn it off. Note: at-rest encryption on RDS and DocumentDB can only be set **at creation**; retrofitting means a snapshot → encrypted copy → restore migration. Get it right on day one.
-05. **Least-privilege IAM.** A dedicated service account or role per workload, scoped to exactly what it needs, using our [custom roles](#identity-custom-roles-never-predefined-critical-roles). No wildcard policies, no `allUsers`/`allAuthenticatedUsers` grants, no Owner/Editor on service accounts, no IAM policies attached directly to users (groups/roles only), no shared human accounts, no long-lived user keys where a role or workload identity works.
+05. **Least-privilege IAM.** A dedicated service account or role per workload, scoped to exactly what it needs, using our [custom roles](#identity-custom-roles-never-predefined-critical-roles). No wildcard policies, no `allUsers`/`allAuthenticatedUsers` grants, no Owner/Editor on service accounts, no IAM policies attached directly to users (groups/roles only), no shared human accounts, no long-lived user keys where a role or workload identity works. Production deploy credentials live only in the GitHub `production` environment (being set up; it is not in every repo yet) and are used only by CI, never from a laptop.
 06. **Private by default.** No public buckets, no databases or SSH open to `0.0.0.0/0` or `::/0`, everything inside the VPC perimeter. The only ports open to the world are 80/443 on the public entry point (load balancer). Public exposure beyond that only when the ticket explicitly says so and says why.
 07. **Telemetry before production.** Alarms are created **in the same Terraform change** as the resource, following the [per-resource baselines](#per-resource-baselines). *Never deploy without telemetry* — a resource with no alarms is not production-ready and will fail Vanta.
 08. **Channel parity.** Every alarm attaches to an existing notification topic/channel per the [channel map](#notification-channels-and-alert-hygiene). An alert nobody receives is non-compliant — and we have found topics with zero subscribers, so verify, don't assume.
@@ -150,7 +150,7 @@ resource "google_monitoring_alert_policy" "fn_errors" {
   }
   notification_channels = [google_monitoring_notification_channel.engineering.id]
   documentation {
-    content   = "A Cloud Run service is failing. Check its logs and Sentry; if it started after a deploy, roll back. Owner: DearDoc Engineering."
+    content   = "A Cloud Run service is failing. Check its logs and Sentry; if it started after a deploy, roll back first (the `rollback` workflow is being built; until it exists, the Release Captain decides how). Owner: DearDoc Engineering."
     mime_type = "text/markdown"
   }
 }
@@ -160,7 +160,7 @@ resource "google_monitoring_alert_policy" "fn_errors" {
 
 Vanta flags the predefined roles `roles/owner`, `roles/editor`, `roles/iam.serviceAccountUser`, `roles/iam.serviceAccountAdmin`, and `roles/iam.serviceAccountTokenCreator` on any user-managed service account. Google also grants `roles/editor` to every project's default compute and App Engine service accounts automatically, which is how most of our findings appeared. The standard:
 
-- **Deployers and serverless runtimes** (CI deploy accounts, Cloud Functions / Cloud Run identities) hold the organization custom role **`serverlessStackAdmin`**. It contains the permissions those workloads actually use (Functions, Run, Firebase, Firestore, Pub/Sub, Scheduler, Firebase Auth, logging, monitoring) and deliberately **excludes** token-creation (`iam.serviceAccounts.getAccessToken`, `signBlob`, `signJwt`, `implicitDelegation`), service-account and key creation, and any `setIamPolicy`. When a workload needs a permission the role lacks, add that permission to the role — never fall back to Editor.
+- **Deployers and serverless runtimes** (CI deploy accounts, Cloud Functions / Cloud Run identities) hold the organization custom role **`serverlessStackAdmin`**. It contains the permissions those workloads actually use (Functions, Run, Firebase, Firestore, Pub/Sub, Scheduler, Firebase Auth, logging, monitoring) and deliberately **excludes** token-creation (`iam.serviceAccounts.getAccessToken`, `signBlob`, `signJwt`, `implicitDelegation`), service-account and key creation, and any `setIamPolicy`. When a workload needs a permission the role lacks, add that permission to the role — never fall back to Editor. The credentials for these deploy accounts live only in the GitHub `production` environment (being set up; it is not in every repo yet) and are used only by CI.
 - **Compute Engine VMs** run as a **dedicated service account** per VM holding a small project-level custom role (`vmRuntime`: log and metric writing) plus resource-level grants for whatever the workload touches (a specific secret, a specific bucket). Default compute service accounts hold nothing.
 - **Default service accounts** (`<project>@appspot`, `<number>-compute@developer`) keep no predefined roles. Existing projects were migrated to the custom role; new projects never receive the grant, by [organization policy](#organization-policies).
 - **Role hygiene.** A deploy role with token-creation permissions at project level lets a leaked CI key impersonate any service account in the project — the escalation Vanta's test exists to catch. Review custom roles for `iam.*`, `*.setIamPolicy`, and `secretmanager.versions.access` before granting them widely.
@@ -214,7 +214,7 @@ When you create one of these, the listed items ship in the same change. This is 
 
 **ECS / Fargate service**
 
-- Images come from an ECR repository with `image_tag_mutability = "IMMUTABLE"` and are tagged with the **git commit SHA**; nothing pushes `:latest`. Third-party sidecars use semantic version tags.
+- Images come from an ECR repository with `image_tag_mutability = "IMMUTABLE"` and are tagged with the **git commit SHA**; nothing pushes `:latest`. Third-party sidecars use semantic version tags. The image tag is the commit SHA, but the release is tagged `vYYYY.MM.DD.N` (see the [release protocol](./README.md#release-protocol)). Images may keep the SHA, and each release tag maps to the SHAs it deployed.
 - The order matters when converting an existing service: pipeline tags with the SHA → task definition references the tag (`var.image_tag`) → one real deploy proves it → flip the repository to `IMMUTABLE` → codify. Flipping first breaks deploys; digest-pinning without changing the pipeline makes deploys silently stop. `IMMUTABLE_WITH_EXCLUSION` is not accepted.
 - Security groups: explicit ports only, nothing public except 80/443 through the LB, no public SSH
 - Task role scoped per service
@@ -323,9 +323,9 @@ When you create one of these, the listed items ship in the same change. This is 
 
 ### GitHub / SDLC
 
-Applies to every repo. Complements the branching and PR rules in [README.md](./README.md#source-control).
+Applies to every repo. Complements the [release protocol](./README.md#release-protocol) and the branching and PR rules in [README.md](./README.md#source-control).
 
-- Repos private; branch protection on the default branch **including administrators** (`enforce_admins = true`); PR required, one approval, stale approvals dismissed, no force-push, no deletion; author ≠ reviewer enforced
+- Repos private; branch protection on `staging` and `main` **including administrators** (`enforce_admins = true`, no admin bypass); PR required, one approval, stale approvals dismissed, no force-push, no deletion; author ≠ reviewer enforced; Code Owner review required on `main`; a `CODEOWNERS` file with an owner and a backup for each restricted area; secret scanning on
 - Dependabot vulnerability scanning on; remediation SLAs by severity (critical: 7 days, high: 30, medium: 90, low: next scheduled maintenance) with a named owner per repo
 - Org invitations cancelled if older than 365 days
 - Repositories outside the SOC 2 system boundary (internal tooling, CRM configuration, finance automations) are **deactivated in Vanta with a scope justification**, not left failing; dead repositories are **archived**, which removes them from scope automatically
@@ -337,7 +337,7 @@ Applies to every repo. Complements the branching and PR rules in [README.md](./R
 - **Logs exclude PHI, PII, card data, and secrets.** No exceptions, including "temporary" debug logging. Sentry error reports must be scrubbed the same way, and Sentry must keep at least one active alert rule.
 - **Centralize logging.** Application and infrastructure logs flow to Cloud Logging / CloudWatch — not to ad-hoc files or third-party sinks outside Tier 1.
 - **MFA everywhere**: infrastructure providers, root accounts, and GitHub. Root accounts have no access keys and are break-glass only.
-- **Access changes are tickets.** Granting, broadening, or transferring access goes through Monday.com; offboarding removes AWS, GCP, GitHub, and Sentry access and reassigns owned resources.
+- **Access changes are tickets.** Granting, broadening, or transferring access goes through Monday.com; offboarding removes AWS, GCP, GitHub, and Sentry access and reassigns owned resources. For contributors, follow the protocol's contributor access rules (see the [full release protocol](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol-full.md), private wiki): access is removed the same day they leave, and the Tech Lead reviews who has access every quarter.
 - **Error Reporting is not alerting.** Google Cloud Error Reporting notifies on *new* error groups; it does not see volume and does not satisfy the monitoring tests. Keep it — and keep the threshold policies beside it.
 
 ## Exceptions
@@ -350,6 +350,8 @@ Sometimes a control is disproportionate — a $1,000/month Cloud IDS endpoint fo
 4. The compensating controls that are **actually in place** — write the note after they are, not before (e.g. CrowdStrike reporting on the instance, flow logs and firewall logging on, restricted firewall rules, project monitoring)
 5. A review date, and what ends the exception (project deletion, or graduation to Tier 1 which triggers the full control)
 6. Who approved it
+
+Exceptions cover infrastructure controls only. They never waive a release gate from the [release protocol](./README.md#release-protocol).
 
 Exceptions are reviewed on their date. One that is still "temporary" at the second review becomes a ticket to implement the control or retire the resource.
 

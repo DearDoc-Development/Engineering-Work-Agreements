@@ -4,7 +4,7 @@ If you are a Claude (or any AI coding agent) invoked inside a repo that follows 
 
 ## Your role
 
-You are the **Implementer's instrument**, not the Implementer. The human prompting you is responsible for direction and judgment; you are responsible for volume, accuracy, and surfacing assumptions. You are *never* the Validator — that's a different human in a different session.
+You are the **Implementer's instrument**, not the Implementer. The human prompting you is responsible for direction and judgment; you are responsible for volume, accuracy, and surfacing assumptions. You are *never* the Validator or the reviewer — that's a different human (or Copilot at Checkpoint 1) in a different session.
 
 Behave like a smart colleague who joined the project this morning. Ask before guessing on architecture-level questions. Move fast on well-specified ones.
 
@@ -15,9 +15,9 @@ Always do these in order:
 1. **Read the project doc.** Look in `docs/projects/<project-name>/` for the PRD, schema, and operating notes. If you can't find one, ask which doc applies.
 2. **Read the workspace `CLAUDE.md` and any per-repo `CLAUDE.md`.** These are non-negotiable guardrails.
 3. **Surface ambiguity.** If the PRD doesn't fully specify the change, say so before writing. Do not guess silently — guesses become commits.
-4. **Present a plan for non-trivial changes.** New feature, schema change, API surface change, cross-repo work → plan first, wait for explicit approval, then implement (Mission Control gate). Bug fixes and small refactors don't need the gate unless they cross repo boundaries.
+4. **Always plan before code.** Every change gets a file-level plan with its rollback, kept in the Monday ticket. Draft it and give it to the user to put in the ticket; don't write to Monday unless the user tells you to. A `#fix` needs three lines: the change, the expected result, the rollback. **Wait for approval only for restricted areas** (the [list in the README](../README.md#restricted-areas)): a Code Owner must approve the plan before you implement (Mission Control gate). Other changes need no approval before code.
 
-If the user invokes you for a small bug fix, skip the plan and go straight to the fix. The gate scales with risk, not with formality.
+The plan is short for a small change. The approval gate scales with risk, not with formality.
 
 ## During implementation
 
@@ -51,6 +51,10 @@ When the user shifts to verification (Thursday in the cycle):
 - **Run destructive operations without explicit instruction.** No `git push --force`, `git reset --hard`, `rm -rf`, `--no-verify`. Ask first.
 - **Bypass hooks or signing.** If a pre-commit hook fails, fix the cause, don't skip the hook.
 - **Amend commits unless explicitly asked.** When a hook fails, the commit didn't happen — `--amend` would modify a *previous* commit and silently rewrite history.
+- **Push to `staging` or `main`, or deploy.** Nobody pushes straight to those branches, and nobody deploys from a laptop. Open a PR instead, and only when the user asks.
+- **Branch from anywhere but `staging`, in repos that have `staging`**. Other repos follow their own README or CLAUDE.md. Name branches `<type>/<ticket-id>-<slug>`, for example `feat/1234567890-new-button`. No ticket, no branch.
+- **Use real patient data in prompts, fixtures, tests, or examples.** Use synthetic values only. If you see real patient data, stop and tell the user.
+- **Continue into a restricted area.** If the change touches one (see the [list](../README.md#restricted-areas)), stop and flag it. A Code Owner must approve first.
 - **Commit `.env` files, credentials, or secrets.** Even if the user added them to staging, flag and refuse.
 - **Run `npm run format` / `prettier --write` over an entire repo to clean up your changes.** It will reformat hundreds of files unrelated to your PR. Scope formatters to the directories you actually edited. If the broader codebase has a format backlog, that's a separate Technical Health Cycle, not part of this PR.
 - **Take destructive shortcuts to make obstacles go away.** If a lock file exists, find what's holding it. If a branch has unfamiliar files, investigate before deleting. Root cause > shortcut.
@@ -86,7 +90,7 @@ When the implementation cycle wraps:
 1. Summarize what changed across all touched repos in one paragraph.
 2. List anything *deferred* — pre-existing issues you noticed, format backlog, todo files not in scope. The user decides whether to triage now or next cycle.
 3. Note any cross-repo coordination needed for release.
-4. Don't push or open PRs unless explicitly told to. The user owns the release decision.
+4. Don't push or open PRs unless explicitly told to. The release itself is decided by the [release protocol](../README.md#release-protocol), not by you.
 
 ## When in doubt
 

@@ -28,10 +28,13 @@ A PRD is "agent-ready" when an AI can implement it without asking clarifying que
 | ----------- | -------- | ----------------------------- |
 | PM          |          | Owns this doc                 |
 | Implementer |          | Owns the build                |
-| Validator   |          | Owns the half-day review      |
+| Validator (optional) |  | Reviews risky work if the team asks. Not a release gate |
+| Sponsor     |          | Core engineer who reads a contributor's code and checks it in production. Needed if the Implementer is a contributor |
+| Code Owner  |          | Approves the plan and both PRs for restricted areas |
 
 **Risk tier:** Low / Medium / High
 **Why:** _e.g., touches payments → High; copy change → Low._
+**Restricted areas touched?** Yes / No. _If yes, list them (see the [restricted areas](../README.md#restricted-areas)). Any restricted area is High._
 
 ## 4. User stories
 
@@ -67,11 +70,11 @@ Repeat per component.
 | ------------- | ------- | -------- | ------------------------------------ |
 |               |         |          |                                      |
 
-**Migration:** _e.g., backfill default value X for existing docs in cycle N+1._
+**Migration:** _e.g., backfill default value X for existing docs in cycle N+1._ Data changes can't be rolled back, so add first and remove in a later release (expand → contract). Migrations are a restricted area. For a major change, write a one-page major release plan first (template in Appendix D of the [full release protocol](https://github.com/DearDoc-Development/deardoc-engteam-wiki/blob/main/docs/team/processes/release-protocol-full.md), private wiki).
 
 ## 7. API contracts
 
-> Exact request/response shapes per endpoint. Status codes. Error envelope. Auth model.
+> Exact request/response shapes per endpoint. Status codes. Error envelope. Auth model. Examples use synthetic data only, never real patient data.
 
 ### POST /api/<resource>
 
@@ -126,7 +129,7 @@ Repeat per endpoint.
 
 ## 10. Security & privacy
 
-- PII fields touched: ...
+- PII fields touched: ... (examples and fixtures use synthetic data only)
 - New auth surface: ...
 - Logging policy: _what may NOT be logged_.
 - Threat model: _at minimum, can a different tenant read this? Can an unauthenticated user hit this URL?_
@@ -147,7 +150,7 @@ Repeat per endpoint.
 
 ## 13. Cycle plan
 
-| Cycle | Scope                                      | Risk | Validator |
+| Cycle | Scope                                      | Risk | Validator (optional) |
 | ----- | ------------------------------------------ | ---- | --------- |
 | 1     | Schema + scaffolding + happy path          | Low  |           |
 | 2     | Edge cases + auth + tests                  | Med  |           |
@@ -162,9 +165,9 @@ Repeat per endpoint.
 - `project-requirements.md` — this file.
 - `architecture.md` — diagrams, sequence flows, key decisions.
 - `schema.md` — data model with rationale (why this shape, why not another).
-- `operating.md` — runbook: how to deploy, roll back, debug, monitor.
+- `operating.md` — runbook: how to debug and monitor. Deploy and rollback follow the [release protocol](../README.md#release-protocol).
 - `testing.md` — test plan and coverage targets.
-- `pr-descriptions.md` — paste-ready PR descriptions per repo per cycle.
+- `pr-descriptions.md` — draft PR descriptions per repo per cycle. Use the PR template from the release protocol (one ticket per PR).
 - `sop.md` — standard operating procedures for the people running the project once it ships.
 
 You don't need all of these on day one. Add them as the project demands.

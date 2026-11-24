@@ -15,7 +15,7 @@ Happens once per project, then again whenever a new Epic starts.
 - How many cycles each Epic takes ("vibe-ability" check — standard CRUD = 1 cycle, payments integration = 3+).
 - Architectural hot spots where the AI is likely to struggle (race conditions, non-linear state, vendor SDKs with thin docs).
 - Rules of engagement — update the repo's `CLAUDE.md` / `.cursorrules` with any project-specific guardrails.
-- Who's the Validator for each cycle (must be a different person than the Implementer).
+- Who reviews risky work (optional Validator, a different person than the Implementer). Review itself is covered by the [release protocol](../README.md#release-protocol).
 
 Output: an Epic in the tracker, a project doc at `docs/projects/<project-name>/`, and an updated `CLAUDE.md`.
 
@@ -23,14 +23,14 @@ Output: an Epic in the tracker, a project doc at `docs/projects/<project-name>/`
 
 **Implementer:**
 1. Reads the PRD and the project doc end-to-end.
-2. Drafts a *plan* — not code. File-by-file changes, new endpoints, schema deltas, test approach.
-3. Posts the plan and **waits for PM approval** (Mission Control gate).
-4. Once approved, scaffolds with the agent: schemas, routes, empty handlers, type definitions.
+2. Drafts a *plan* — not code. File-by-file changes, new endpoints, schema deltas, test approach, and the rollback. The plan goes in the Monday ticket.
+3. If the change touches a [restricted area](../README.md#restricted-areas), **waits for Code Owner approval** (Mission Control gate). Other changes go ahead without waiting.
+4. Scaffolds with the agent: schemas, routes, empty handlers, type definitions.
 
 **PM:**
 - Available for plan-review questions. This is the cheapest hour of the week — use it.
 
-**Done by EOD Monday:** plan approved, scaffolding committed, tracker updated.
+**Done by EOD Monday:** plans in the tickets (approved where restricted), scaffolding committed, tracker updated.
 
 If the plan reveals the PRD is ambiguous, **stop and fix the PRD**. Do not implement against a guess.
 
@@ -55,17 +55,17 @@ In all three cases, return to Mission Control. Don't push through.
 
 ## Day 4 — Thursday: Verification
 
-Generation stops. Verification starts. Three layers:
+Generation stops. Verification starts. The per-change checks happen at PR time and on staging, as the [release protocol](../README.md#the-route-of-a-change) describes: CI and Copilot at Checkpoint 1, then the staging check. Thursday is where you catch up on any that remain. Three layers:
 
-1. **Automated tests** — agent writes unit + integration tests against the PRD's acceptance criteria. Run them. Fix failures *as the implementer*, then re-run.
-2. **Visual / functional audit** — for UI work, click through the actual feature in a browser. Type checking and tests verify code correctness, not feature correctness. If you can't run the UI, say so explicitly — don't claim success.
+1. **Automated tests** — agent writes unit + integration tests against the PRD's acceptance criteria. Use synthetic data only. Run them. Fix failures *as the implementer*, then re-run.
+2. **Visual / functional audit** — for UI work, click through the actual feature on staging in a browser. Type checking and tests verify code correctness, not feature correctness. If you can't run the UI, say so explicitly — don't claim success.
 3. **Security scan** — `npm audit`, `snyk`, or your equivalent. For higher-risk tiers, run a prompt-injection / OWASP Top-10 pass with a tool that knows AI patterns (Promptfoo, Checkmarx One Assist).
 
-The Implementer is still on the hook for fixing what verification finds. The Validator hasn't started yet.
+The Implementer is still on the hook for fixing what verification finds.
 
-## Day 4 PM / Day 5 AM — Validation (the half-day gate)
+## Optional validation
 
-**A different engineer does this. Not the Implementer.** This is the load-bearing rule.
+A team may ask a different engineer (not the Implementer) to validate risky work. This is optional and is not a release gate. Release gates are the two checkpoints of the protocol.
 
 The Validator's job is *not* to rubber-stamp. It's to mentally execute the code as an attacker.
 
@@ -82,7 +82,7 @@ The Validator's job is *not* to rubber-stamp. It's to mentally execute the code 
 | Edge cases       | Negative numbers, null, empty array, very large input, expired token. |
 | Cross-repo       | Did the contract change? Did the consumer change in lockstep?         |
 
-The Validator either signs off or sends it back. There is no "looks good but…" — either it ships or it doesn't.
+A Validator who is asked gives a clear answer: sign off or send it back. There is no "looks good but…".
 
 ## Day 5 PM — Finalization & Review
 
@@ -91,24 +91,24 @@ The Validator either signs off or sends it back. There is no "looks good but…"
 - Update the project doc at `docs/projects/<project-name>/` if anything material changed.
 - Generate release notes from commits.
 
-**PM + Implementer + Validator (15 min):**
+**PM + Implementer (15 min cycle review):**
 - Demo working software, not slides.
-- Decide: ship, hold, or roll back.
-- If hold: what's the unblock condition, and is it next cycle's first task?
+- Review what shipped through the daily releases this week, what is waiting on `staging`, and what slipped.
+- For anything not done: what's the unblock condition, and is it next cycle's first task?
 
-Hand off to deploy. Vibe deploy = one-click to staging then prod, gated by the Validator's sign-off.
+This is a review, not a ship-or-hold decision. Code ships through the daily release. After each deploy, the committer gets a message and verifies within 30 minutes (see [message and verify](../README.md#the-route-of-a-change)).
 
 ## Cross-cycle hygiene
 
 - **Cycle 4 or 5 = Technical Health Cycle.** No features, just refactors of AI-generated code that's accumulating debt.
 - **Project doc lives at `docs/projects/<name>/`** — single source of truth, not duplicated per repo. Update it as scope evolves; archive when the project ships.
-- **Cross-repo changes coordinate releases.** Backend contract change on `main` → frontend / integration change must land same cycle.
+- **Cross-repo changes coordinate releases.** Backend contract change on `staging` → frontend / integration change must land same cycle.
 - **Memory the agent collects belongs to the agent's profile, not the project doc.** Project doc captures decisions and context; agent memory captures collaboration preferences.
 
 ## Failure modes to watch for
 
 - **Skipped Mission Control** → "I'll just try it real quick" → 4 hours later, broken architecture.
-- **Validator = Implementer** → review becomes ceremony, regressions ship.
+- **Reviewer = author** → review becomes ceremony, regressions ship.
 - **PRD written after the fact** → you can't validate against intent that didn't exist.
 - **Format/lint scripts that touch unrelated files** → scope your auto-format to the directories you actually changed. A wide reformatter dragging 60 files into your PR is a review-killer.
 - **"Tests pass" as the validation signal** → tests pass. The agent wrote them to pass. Mental execution still required.

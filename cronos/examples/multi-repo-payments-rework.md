@@ -1,5 +1,7 @@
 # Example Cycle: Multi-Repo Payments Rework
 
+> **Editor's note:** this case study was written before the [release protocol](../../README.md#release-protocol). Under the protocol, this work would need Code Owner approval (payments, security rules, and secrets are restricted areas), a separate ticket and PR for each change, and the Release Captain present at deploy. The half-day Validator gate described below is no longer a release gate.
+
 A real Cronos cycle, sanitized. Useful as a worked example of what a high-risk, multi-repo cycle looks like in practice — what worked, what didn't, what the playbook caught and what it missed.
 
 ## The setup
@@ -99,6 +101,8 @@ What missed:
 All four working trees clean, each repo +1 commit ahead of origin. Push and PR-open delegated to the human (gated — the agent does not push).
 
 ## Lessons (carryover into the next cycle)
+
+> **Historical:** the half-day Validator gate guidance in these lessons is from before the [release protocol](../../README.md#release-protocol). Today the two protocol checkpoints apply: Checkpoint 1 (AI code review) and Checkpoint 2 (release check).
 
 1. **Cross-repo project doc paid for itself.** Touching four repos in one cycle would have been chaos without `docs/projects/<project>/` as the single source. Keep this pattern for all multi-repo work; resist the temptation to copy excerpts into per-repo `README`s.
 2. **Scope formatters narrowly.** Run `prettier --write` on the directories you actually edited, not the repo root. Wide reformats turn a focused PR into a 60-file review that nobody reads carefully.
